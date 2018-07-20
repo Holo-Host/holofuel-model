@@ -193,7 +193,7 @@
     #+BEGIN_SRC ipython :session :exports both :results value raw
     amounts_mean	= 1.00
     amounts_sigma	= 0.50
-    error_sigma		= 0.05 # +/- 5% variance in bids (error) vs. price
+    error_sigma		= 0.10 # +/- 10% variance in bids (error) vs. price
     trades		= []
     number		= 10000
     for _ in range( number ):
