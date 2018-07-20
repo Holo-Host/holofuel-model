@@ -2,7 +2,7 @@
 #+STARTUP: org-startup-with-inline-images inlineimages
 #+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
 #+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
-* Holo Fuel
+* Holo Fuel Valuation
 
   A value-stable wealth-backed cryptocurrency platform, where each unit is defined in terms of a
   basked of computational resources, operating in a powerful decentralized verification environment.
@@ -29,79 +29,103 @@
 ** The Computational Resources Basket
 
    One Holo Fuel (HOT) is defined as being able to purchase 1 month of Holo Hosting services for the
-   front-end (ie. web API) portion of a typical dApp:
+   front-end (ie. web API, databases, etc.) portion of a typical dApp.
+
+   This might be roughly equivalent to the 2018 price of (and actual utilization of) a small cloud
+   hosting setup (eg. several $5/month Droplet on Digital Ocean at partial utilization hosting
+   front-ends, DBs, backups, etc.), plus ancillary hosting services (represented by a premium for
+   inclusion in the Holo system).
+
+   If the minimal Hosting costs for a small Web app is estimated at USD$100/mo., and comprises 5
+   cloud hosting nodes and anciliary services for the various aspects of the system.  An equivalent
+   Holo Host based system would have similar CPU and storage requirements overall, but a greater
+   redundancy (say, 5 x, so all DHTs spread across 25 Holo Hosts).
+
+   Thus, the basket of commodities defining the value of USD$100 == HOT$100 could be defined as:
 
    #+LATEX: {\scriptsize
    #+BEGIN_SRC ipython :session :exports results :results value
-   %matplotlib inline
-   from __future__ import absolute_import, print_function, division
-   try:
-       from future_builtins import zip, map # Use Python 3 "lazy" zip, map
-   except ImportError:
-       pass
-   import matplotlib.pyplot as plt
-   import numpy        # .random, ...
-   from sklearn import linear_model
-   import math
-   import collections
+       %matplotlib inline
+       from __future__ import absolute_import, print_function, division
+       try:
+           from future_builtins import zip, map # Use Python 3 "lazy" zip, map
+       except ImportError:
+           pass
+       import matplotlib.pyplot as plt
+       import numpy        # .random, ...
+       from sklearn import linear_model
+       import math
+       import collections
 
-   commodity_t         = collections.namedtuple(
-       'Commodity', [
-           'units',
-           'quality',
-           'notes',
-       ] )
-   commodities         = {
-       'holo':         commodity_t( "Host",    "",           "Inclusion in the Holo system" ),
-       'cpu':          commodity_t( "Core",    "Median",     "A processing core" ),
-       'ram':          commodity_t( "GB",      "Median",     "Processor memory" ),
-       'net':          commodity_t( "TB",      "Median",     "Internet bandwidth" ),
-       'data':         commodity_t( "TB",      "Median",     "Persistent storage (DHT/DB/file)" ),
-   }
-   trade_t             = collections.namedtuple(
-       'Trade', [ 
-           'security', 
-           'price', 
-           'time', 
-           'amount', 
-           'agent',
-         ] )
-   # The basket represents the computational resource needs of a typical Holochain dApp's "interface"
-   # Zome.  A small dual-core Holo Host (ie. on a home Internet connection) could perhaps expect to run
-   # 5 of these; a quad-core / 8-thread perhaps 20.
-   basket            = {
-       # Commodity     Amount
-       'holo':        1.0 , # Host
-       'cpu':          .25, # Core
-       'ram':          .25, # GB
-       'net':          .1 , # TB
-       'data':         .1 , # TB
-   }
-   # Produces the org-mode table from result 2d list
-   [ ["Amount", "Units", "Commodity", "Description"],
-     None ] \
- + [ [ "%5.2f" % basket[k], commodities[k].units, k, commodities[k].notes ]
-     for k in basket ]
+       commodity_t         = collections.namedtuple(
+           'Commodity', [
+               'units',
+               'quality',
+               'notes',
+           ] )
+       commodities         = {
+           'holo':         commodity_t( "Host",    "",           "Inclusion in the Holo system" ),
+           'cpu':          commodity_t( "Core",    "Median",     "A processing core" ),
+           'ram':          commodity_t( "GB",      "Median",     "Processor memory" ),
+           'net':          commodity_t( "TB",      "Median",     "Internet bandwidth" ),
+           'data':         commodity_t( "TB",      "Median",     "Persistent storage (DHT/DB/file)" ),
+       }
+       trade_t             = collections.namedtuple(
+           'Trade', [ 
+               'security', 
+               'price', 
+               'time', 
+               'amount', 
+               'agent',
+             ] )
+       # The basket represents the computational resource needs of a typical Holochain dApp's "interface"
+       # Zome.  A small dual-core Holo Host (ie. on a home Internet connection) could perhaps expect to
+       # run 100 HOT worth of these at 50% CPU utilization, 1TB of bandwidth; a quad-core / 8-thread
+       # perhaps 500 HOT worth at ~60% CPU utilization.
+       basket_t             = collections.namedtuple(
+           'Basket', [
+               'amount',
+               'weight', # Must sum to 1.0
+            ] )
+
+       iron_count	=   5
+       holo_fanout	=   5
+       hosts		= iron_count * holo_fanout
+       basket_value     = 100.0 		# 1 HOT$ =~= 1 USD$; USD$100 of cloud hosting, typ.
+       iron_prop        =   0.50   		# fraction of costs that are compute resources related
+       holo_prop        = 1 - iron_prop		#   remainder is Holo/Holochain Hosting value premium
+       basket           = {
+           # Commodity     Amount, Proportion
+           'holo':        basket_t( hosts, holo_prop ),   # Holo Host system fan-out and value premium
+           'cpu':         basket_t(   1.0, iron_prop/4 ), # Cores, avg. utilization across all iron
+           'ram':         basket_t(   1.0, iron_prop/4 ), # GB,    ''
+           'net':         basket_t(   1.0, iron_prop/4 ), # TB
+           'data':        basket_t(    .1, iron_prop/4 )  # TB
+       }
+
+       # Produces the org-mode table from result 2d list
+       [ ["Commodity", "Amount", "Units", "Weight", "Description"],
+         None ] \
+     + [ [ k, "%5.2f" % basket[k].amount, commodities[k].units, "%5.3f%%" % ( basket[k].weight * 100 ), commodities[k].notes ]
+         for k in basket ]
    #+END_SRC
    #+LATEX: }
 
    #+RESULTS:
-   | Amount | Units | Commodity | Description                      |
-   |--------+-------+-----------+----------------------------------|
-   |   1.00 | Host  | holo      | Inclusion in the Holo system     |
-   |   0.10 | TB    | net       | Internet bandwidth               |
-   |   0.25 | GB    | ram       | Processor memory                 |
-   |   0.10 | TB    | data      | Persistent storage (DHT/DB/file) |
-   |   0.25 | Core  | cpu       | A processing core                |
-
-   This might be roughly equivalent to the 2018 price of (and actual utilization of) a small cloud
-   hosting node (eg. a $5/month Droplet on Digital Ocean), with a premium for inclusion in the Holo
-   system.
+   | Commodity | Amount | Units |  Weight | Description                      |
+   |-----------+--------+-------+---------+----------------------------------|
+   | holo      |  25.00 | Host  | 50.000% | Inclusion in the Holo system     |
+   | net       |   1.00 | TB    | 12.500% | Internet bandwidth               |
+   | ram       |   1.00 | GB    | 12.500% | Processor memory                 |
+   | data      |   0.10 | TB    | 12.500% | Persistent storage (DHT/DB/file) |
+   | cpu       |   1.00 | Core  | 12.500% | A processing core                |
 
 *** Holo Hosting Premium
 
     A Holochain Distributed Application (dApp) hosted on Holo provides a valuable set of features,
-    over and above simply hosting a typical web application on a set of cloud servers.  
+    over and above simply hosting a typical web application on a set of cloud servers.  These
+    services must usually be either purchased, or architected by hand and distributed across
+    multiple cloud hosting nodes for redundancy.
 
     - [ ] Reliability. Few single points of failure.
     - [ ] Backup. All DHT data is spread across many nodes.
@@ -146,48 +170,62 @@
    
 *** Recovering Commodity Basket Costs
 
-    To illustrate price recovery, lets begin with simulated prices of a basket of commodities:
+    To illustrate price recovery, lets begin with simulated prices of a basket of commodities.  A
+    typical dApp owner would select HOT$100 of these resources, eg. 25x holo Hosts, .05 TB data, .5
+    cpu, etc. as appropriate for their specific application's needs.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw
     # To simulate initial pricing, lets start with an estimate of proportion of basket value represented
-    # by each amount of the basket's commodities.  Keep it simple; all are roughly equally weighted.
-    price_mean          = 1.00                  # target price: 1.00 Holo Fuel == 1 basket
+    # by each amount of the basket's commodities.
+    price_mean          = basket_value          # target price: 1.00 Holo Fuel == 1 basket / basket_value
     price_sigma         = price_mean / 10       #  difference allowed; about +/- 10% of target
-    prices              = { k: ( price_sigma * numpy.random.randn() + price_mean ) / len( basket ) / basket[k]
+    prices              = { k: ( price_sigma * numpy.random.randn() + price_mean ) * basket[k].weight / basket[k].amount
                           for k in basket }
     [ [ "Commodity", "HOT$", "Per" ],
       None ] \
-    + [ [ k, "%5.2f" % ( prices[k] ), "%s / mo." % ( commodities[k].units ) ]
+    + [ [ k, "%5.2f" % ( prices[k] ), "/ %s / mo." % ( commodities[k].units ) ]
         for k in basket ]
     #+END_SRC
     #+LATEX: }
 
     #+RESULTS:
-    | Commodity | HOT$ | Per        |
-    |-----------+------+------------|
-    | holo      | 0.18 | Host / mo. |
-    | net       | 1.84 | TB / mo.   |
-    | ram       | 0.95 | GB / mo.   |
-    | data      | 2.36 | TB / mo.   |
-    | cpu       | 0.85 | Core / mo. |
+    | Commodity |   HOT$ | Per          |
+    |-----------+--------+--------------|
+    | holo      |   1.87 | / Host / mo. |
+    | net       |  12.62 | / TB / mo.   |
+    | ram       |  10.72 | / GB / mo.   |
+    | data      | 128.29 | / TB / mo.   |
+    | cpu       |  13.08 | / Core / mo. |
 
-    From this set of current commodity prices, we can compute the current price of the HOT currency's basket:
+    From this set of current assumed commodity prices, we can compute the current price of the HOT
+    currency's basket:
 
     #+BEGIN_SRC ipython :session :exports results :results value raw
     [ [ "HOT$ Basket Price" ],
       None,
-      [ "$%5.2f" % ( sum( basket[k] * prices[k] for k in basket )) ] ]
+      [ "$%5.2f / %.2f" % ( sum( basket[k].amount * prices[k] for k in basket ), basket_value ) ] ]
     #+END_SRC
 
     #+RESULTS:
     | HOT$ Basket Price |
     |-------------------|
-    | $ 1.05            |
+    | $108.17 / 100.00  |
+
+    If the current price of this basket is >100, then we are experiencing commodity price inflation;
+    if <100, price deflation.  Feedback control loops will act to bring the price back to HOT$100
+    per basket.
+
+*** Holo Hosting Receipts 
 
     Once we have the currency's underlying commodity basket, lets simulate a sequence of trades of
-    various amounts of these commodities.  We will not know the exact costs of each commodity used
-    to compute the price, or how much is the baseline Holo system premium.
+    various amounts of these commodities.  In the Holo system, this is represented by Hosts issuing
+    receipts for services to dApp owners.
+
+    We will not know the exact costs of each commodity used to compute the price, or how much is the
+    baseline Holo system premium.  However, it will be dependant on the capability of the Host
+    (stronger hosts can charge more, for hosting more specialized dApps), and the amount of various
+    services used.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw
@@ -197,7 +235,8 @@
     trades		= []
     number		= 10000
     for _ in range( number ):
-        amounts		= { k: 1 if k == 'holo' else max( 0, basket[k] * ( amounts_sigma * numpy.random.randn() + amounts_mean )) for k in basket }
+        amounts		= { k: 1 if k == 'holo' else max( 0, basket[k].amount * ( amounts_sigma * numpy.random.randn() + amounts_mean ))
+                            for k in basket }
         price		= sum( amounts[k] * prices[k] for k in amounts )
         error		= price * error_sigma * numpy.random.randn()
         bid		= price + error
@@ -207,20 +246,20 @@
     + [ [ 
           "%5.2f" % t['bid'],
           "%5.2f%+5.2f" % ( t['price'], t['error'] ),
-           ", ".join( "%5.4f %s %s" % ( v * basket[k], k, commodities[k].units ) for k,v in t['amounts'].items() ),
+           ", ".join( "%5.4f %s %s" % ( v * basket[k].amount, k, commodities[k].units ) for k,v in t['amounts'].items() ),
         ]
         for t in trades[:5] ]
     #+END_SRC
     #+LATEX: }
 
     #+RESULTS:
-    | HOT$ |  calc/err | dApp Requirements                                                               |
-    |------+-----------+---------------------------------------------------------------------------------|
-    | 0.82 | 0.88-0.06 | 1.0000 holo Host, 0.0084 net TB, 0.0021 ram GB, 0.0115 data TB, 0.0772 cpu Core |
-    | 0.71 | 0.73-0.02 | 1.0000 holo Host, 0.0075 net TB, 0.0631 ram GB, 0.0036 data TB, 0.0251 cpu Core |
-    | 0.99 | 1.02-0.03 | 1.0000 holo Host, 0.0048 net TB, 0.0902 ram GB, 0.0013 data TB, 0.1103 cpu Core |
-    | 0.99 | 1.01-0.01 | 1.0000 holo Host, 0.0142 net TB, 0.0416 ram GB, 0.0034 data TB, 0.0955 cpu Core |
-    | 1.52 | 1.45+0.07 | 1.0000 holo Host, 0.0229 net TB, 0.0671 ram GB, 0.0146 data TB, 0.0723 cpu Core |
+    |   HOT$ |     calc/err | dApp Requirements                                                               |
+    |--------+--------------+---------------------------------------------------------------------------------|
+    | 106.03 |  111.35-5.33 | 1.0000 holo Host, 1.1265 net TB, 1.1743 ram GB, 0.0086 data TB, 1.3599 cpu Core |
+    | 107.11 |  111.92-4.81 | 1.0000 holo Host, 0.6170 net TB, 0.9852 ram GB, 0.0154 data TB, 1.5295 cpu Core |
+    |  81.09 |  99.80-18.71 | 1.0000 holo Host, 0.3979 net TB, 1.1655 ram GB, 0.0022 data TB, 0.7500 cpu Core |
+    |  87.66 | 100.82-13.16 | 1.0000 holo Host, 0.3555 net TB, 0.5066 ram GB, 0.0027 data TB, 1.5426 cpu Core |
+    | 106.46 |  104.23+2.24 | 1.0000 holo Host, 0.9558 net TB, 0.7325 ram GB, 0.0010 data TB, 1.4447 cpu Core |
 
 
     Lets see if we can recover the approximate Holo baseline and per-commodity costs from a sequence
@@ -260,29 +299,132 @@
     #+RESULTS:
     | Commodity | Predicted | Actual |   Error |
     |-----------+-----------+--------+---------|
-    | holo      |      0.18 |   0.18 | -1.606% |
-    | net       |      1.83 |   1.84 | -0.260% |
-    | ram       |      0.94 |   0.95 | -0.077% |
-    | data      |      2.37 |   2.36 | +0.391% |
-    | cpu       |      0.87 |   0.85 | +1.200% |
+    | holo      |     85.26 |  85.01 | +0.291% |
+    | net       |      5.82 |   5.99 | -2.827% |
+    | ram       |      5.42 |   5.74 | -5.555% |
+    | data      |     54.66 |  53.66 | +1.865% |
+    | cpu       |      6.10 |   6.06 | +0.702% |
 
+*** Commodity Basket Valuation
 
     Finally, we can estimate the current HOT$ basket price from the recovered commodity prices:
 
+    #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports results :results value raw
-    basket_price	= sum( basket[k] * prices[k]  for k in basket )
-    basket_predict	= sum( basket[k] * predict[k] for k in basket )
+    basket_price	= sum( basket[k].amount * prices[k]  for k in basket )
+    basket_predict	= sum( basket[k].amount * predict[k] for k in basket )
     [ [ "HOT$ Basket Price", "Error" ], None,
-      [ "$%5.2f" % basket_predict,
+      [ "$%5.2f / %.2f" % ( basket_predict, basket_value ), 
         "%+5.3f%%" % (( basket_predict - basket_price ) * 100 / basket_price ),
         ]]
     #+END_SRC
+    #+LATEX: }
 
     #+RESULTS:
     | HOT$ Basket Price |   Error |
     |-------------------+---------|
-    | $ 1.05            | -0.008% |
+    | $108.07 / 100.00  | -0.091% |
 
-    We should be able to recover the underlying commodity prices, and hence the basket price within
-    a high degree of certainty, even in the face of relatively large differences in the mix of
-    prices paid for hosting.
+    We have shown that we should be able to recover the underlying commodity prices, and hence the
+    basket price with a high degree of certainty, even in the face of relatively large differences
+    in the mix of prices paid for hosting.
+
+* Holo Fuel Value Stabilization
+
+  Price discovery gives us the tools we need to detect {in,de}flation as it occurs.  Control of
+  credit available in the marketplace gives us the levers we need to eliminate it.
+
+** Wealth Monetization
+
+   In a wealth-backed currency, credit is created by the attachment of wealth to the monetary
+   system.  Depending on savings rates, monetary velocity, public sentiment etc., the amount of
+   credit available to be spent varies.  Since this available credit is split between possible
+   expenditures in priority order, the amount available to spend on each specific commodity
+   therefore varies, driving the market price up and down.
+
+*** Reserve Accounts
+
+    The Reserve Accounts provide the interface between external currencies (eg. USD$, HOT ERC20
+    tokens) and HOT$ Holo Fuel.
+
+    Deposits to the reserve creates HOT$ credit limit (debt) at a current rate of exchange (TBD;
+    eg. market rate + premium/discount).  The corresponding HOT$ credits created are deposited to
+    the recipients HOT$ account.  
+   
+    If HOT$ inflation occurs within the system, credit must be withdrawn.  One way to accomplish
+    this is to discourage creation of HOT$ (and encourage the redemption of HOT$), by increasing the
+    exchange rate.  The inverse (lowering exchange rate) would result in more HOT$ creating (less
+    redemption), reducing the HOT$ available, and thus reduce deflation.
+
+    The Reserve Accounts can respond very quickly, inducing Holo Hosts with HOT$ balances to quickly
+    convert them out to other currencies when exchange rates rise.  Inversely, reducing rates would
+    release waiting dApp owners to purchase more HOT$ for hosting their dApps, deploying it into the
+    economy to address deflation (increasing computational commodity prices).
+    
+    A PD (Proportional Differential) control might be ideal for this.  This type of control responds
+    quickly both to direct errors (things being the wrong price), but most importantly to changes in
+    the 2nd derivative (changes in rate of rate of change); eg. things getting more/less expensive
+    at an increasing rate.
+
+    By eliminating the I (Integral) component of the PID loop, it does *not* slowly build up a
+    systematic output bias; it simply adjusts the instantaneous premium/discount added to the
+    current market exchange rate (eg. the HOT ERC20 market), to arrive at the Reserve Account
+    exchange rate.  When inflation/deflation disappears, then the Reserve Account will have the same
+    exchange rate as the market.
+
+    Beginning with a set of reserves:
+
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :exports results :results value
+    reserve_t           = collections.namedtuple(
+        'Reserve', [
+            'rate',	# Exchange rate used for these funds
+            'amount',	# The total value of the amount executed at .rate
+         ] ) 		#   and the resultant credit in Holo Fuel == amount * rate
+ 
+    reserve		= {
+        'EUR':		[],	# LIFO stack of reserves available
+        'USD':		[ reserve_t( .0004, 400 ), reserve_t( .0005, 500 ) ], # 1,000,000 Holo Fuel
+        'HOT ERC20':	[ reserve_t( 1, 1000000 ) ], # 1,000,000 Holo Fuel
+    }
+    def reserves( reserve ):
+        return [ [ "Currency", "Rate avg.", "Reserves", "Holo Fuel Credits", ], None, ] \
+               + [ [ c, "%8.6f" % ( sum( r.amount * r.rate for r in reserve[c] )
+                                   / ( sum( r.amount for r in reserve[c] ) or 1 ) ),
+                     "%8.2f" % sum( r.amount for r in reserve[c] ),
+                     "%8.2f" % sum( r.amount / r.rate for r in reserve[c] ) ]
+                   for c in reserve ] \
+               + [ None,
+                   [ '', '', '', sum( sum( r.amount / r.rate for r in reserve[c] ) for c in reserve ) ]]
+    summary		= reserves( reserve )
+    summary # summary[-1][-1] is the total amount of reserves credit available, in Holo Fuel
+    #+END_SRC
+
+    #+RESULTS:
+    | Currency  | Rate avg. |   Reserves | Holo Fuel Credits |
+    |-----------+-----------+------------+-------------------|
+    | HOT ERC20 |  1.000000 | 1000000.00 |        1000000.00 |
+    | USD       |  0.000456 |     900.00 |        2000000.00 |
+    | EUR       |  0.000000 |       0.00 |              0.00 |
+    |-----------+-----------+------------+-------------------|
+    |           |           |            |         3000000.0 |
+
+    #+LATEX: }
+
+    As a simple proxy for price stability, lets assume that we strive to maintain a certain stock of
+    Holo Fuel credits in the system for it to be at equilibrium.  We'll randomly do exchanges of
+    Holo Fuel out through exchanges at a randomly varying rate (also varied by the rate
+    premium/discount), and purchases of Holo Fuel through exchanges at a rate proportional to the
+    premium/discount.
+
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :exports both :results value
+
+    t_last		= -1
+    for t in range( 1000 ):
+ 	dt		= t - t_last
+        
+    #+END_SRC
+    #+LATEX: }
+
+    #+RESULTS:
