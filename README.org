@@ -352,7 +352,7 @@
     the recipients HOT$ account.  
    
     If HOT$ inflation occurs within the system, credit must be withdrawn.  One way to accomplish
-    this is to discourage creation of HOT$ (and encourage the redemption of HOT$), by increasing the
+    this is to discourage creation of HOT$ (and encourage the redemption of HOT$ ), by increasing the
     exchange rate.  The inverse (lowering exchange rate) would result in more HOT$ creating (less
     redemption), reducing the HOT$ available, and thus reduce deflation.
 
@@ -384,7 +384,7 @@
  
     reserve		= {
         'EUR':		[],	# LIFO stack of reserves available
-        'USD':		[ reserve_t( .0004, 400 ), reserve_t( .0005, 500 ) ], # 1,000,000 Holo Fuel
+        'USD':		[ reserve_t( .0004, 200 ), reserve_t( .0005, 250 ) ], # 1,000,000 Holo Fuel
         'HOT ERC20':	[ reserve_t( 1, 1000000 ) ], # 1,000,000 Holo Fuel
     }
     def reserves( reserve ):
@@ -399,6 +399,7 @@
     summary		= reserves( reserve )
     summary # summary[-1][-1] is the total amount of reserves credit available, in Holo Fuel
     #+END_SRC
+    #+LATEX: }
 
     #+RESULTS:
     | Currency  | Rate avg. |   Reserves | Holo Fuel Credits |
@@ -409,7 +410,6 @@
     |-----------+-----------+------------+-------------------|
     |           |           |            |         3000000.0 |
 
-    #+LATEX: }
 
     As a simple proxy for price stability, lets assume that we strive to maintain a certain stock of
     Holo Fuel credits in the system for it to be at equilibrium.  We'll randomly do exchanges of
