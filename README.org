@@ -308,7 +308,7 @@
 
       amounts_mean            = 1.00
       amounts_sigma           = 0.5
-      error_sigma = 0.10 # +/- 10% variance in bids (error) vs. price
+      error_sigma             = 0.10 # +/- 10% variance in bids (error) vs. price
       trades                  = []
       number                  = 10000
       for _ in range( number ):
@@ -424,6 +424,147 @@
     We have shown that we should be able to recover the underlying commodity prices, and hence the
     basket price with a high degree of certainty, even in the face of relatively large differences
     in the mix of prices paid for hosting.
+
+** Simple Value Stability Control via PID
+
+   The simplest implementation of value-stability is to directly control the credit supply.  Lets
+   establish a simple wealth-backed monetary system with a certain amount of wealth attached to it,
+   from which we extend credit at a factor =K= of 0.5 to begin with; half of the value of the wealth is
+   available in credit.  Adjusting =K= increases/reduces the liquid credit supply.
+
+   The economy has a certain stock of Host resources available (eg. cpu, net, ...), and a certain
+   pool of dApp owners wanting to buy various combinations of them.  The owners willing to pay more
+   will get preferred access to the resources. In a traditional bid/ask market, greater bids are
+   satisfied first, lesser later or not at all. In Holo, tranches of similar Hosts round-robin
+   requests from clients of the dApps they host.
+
+*** Host/dApp Pricing
+
+    In the Holo Host environments, Hosts are pooled in tranches of like resource capacity (eg. cpu:
+    type, count, ...), quality (eg. service: availability, longevity, ...), and price
+    (eg. autopilot/manual pricing: lolo, lo, median, hi, hihi).  A multi-dimensional table of Host
+    tranches is maintained; each Host inserts itself into the correct table.
+
+    - TODO: How do the DHT peers confirm that a Host isn't lying about its internal computational
+      resources?  A dApp could check, and issue a warrant if the Host is lying, but a DHT peer
+      couldn't independently verify these claims.  There will be great incentive to inflate claims,
+      to draw and serve higher-priced requests...)
+   
+    A dApp owner also selects the resource requirements (eg. cpu: avx-128+, 4+ cores, ...) service
+    level and pricing (eg. median).
+   
+    Requests from hihi priced dApps are distributed first to the lolo, then lo, ..., hihi tranches
+    of Hosts, as each tranche's resources is saturated; thus, lolo priced Hosts are saturated first.
+    Then, hi dApps are served any by lolo, lo, ...  Hosts not yet saturated, and so on.  Thus, in
+    times of low utilization (less dApps than Hosts), the highest priced Hosts may remain idle; in
+    high utilization (more dApps than Hosts), the lowest priced dApp's requests may remain unserved
+    (or, perhaps throttled and served round-robin, to avoid complete starvation of the lower priced
+    dApp groups). Of course, these tranches of Hosts are also limited (via a set Union) to those
+    Hosts in each tranche that *also* host a given target dApp, and requests for a dApp are only
+    sent to those hosts who can service it.
+
+    - TODO: Each TCP/IP HTTP socket, representing 1 or more HTTP requests or a WebSocket initiation,
+      is assigned a Host; does Holo terminate the connection and relay I/O to/from the Host? It
+      should pre-establish a pool of sockets to candidate Hosts, ready to be distributed to incoming
+      requests, thus eliminating the delay of the 3-way handshake, and pre-eliminating
+      dead/unreachable Hosts.) This requires a persistent proxy a.la. Cloudflare. Much more simply,
+      perhaps, we could build [[https://insights.sei.cmu.edu/sei_blog/2017/02/six-best-practices-for-securing-a-robust-domain-name-system-dns-infrastructure.html][DNS servers]] that advertise multiple A records from an appropriate
+      tranche of candidate servers, in round-robin fashion, and let the end-user sort out servers
+      that disappear (until the DNS server figures out they're dead and stops serving their IP
+      address).  However, intervening caching DNS servers (eg. at large ISPs) could conduit large
+      numbers of request (ie. from the entire ISP!) to those few Host A-records for the
+      time-to-live of the cached DNS query.
+
+*** Host/dApp Pricing Automation Approaches
+
+    How does the system compute the actual price that "median" Hosts get paid?  How does it evolve
+    over time?  1/2 of requests should go to median, lo, lolo Hosts, and 1/2 should go to median,
+    hi, hihi Hosts.  A PID loop could move the "Median" Host price to make this true, perhaps.
+    Hosts should set a minimum average price they'll earn, dApps a maximum average price they're
+    willing to pay, and their requests are throttled to only the Host tranches which satisfy these
+    limits.
+
+    By automatically switching a Host to higher/lower pricing tiers, and the dApp to lower/higher
+    pricing selections, as their limit prices are reached, the numbers of Hosts/dApps above/below
+    "median" changes -- and the PID loop adjusts the median price to achieve above/below
+    equilibrium.  Thus, as more dApps exceed their high limit, switch to lower tiers (eg. from hi
+    --> median --> lo), the mix of requests above/below median price changes, and the PID loop
+    responds by adjusting the median Hosting price, which affects average dApp request pricing,
+    which causes the dApp to hit its limits, which causes it to (again) switch to a lower tier...
+
+    Of course, the dApp owner is informed of this, in real time, and can make price limit
+    adjustments, to re-establish dApp performance.  Likewise, a Hosting owner can see that their
+    Hosts are saturated/idle, and increase/decrease their minimum price, or maximum utilization
+    targets; the Host should increase its desired pricing tier, to stay under its maximum
+    utilization target.
+
+*** Simple Host/dApp Pricing Model
+
+    For the purposes of this simple test, we'll assume that the Host will simply spend all the
+    credit the dApp has available serving its requests (we won't simulate the dApps).  So, lets
+    generate a sequence of request service receipts from the Host to dApp owners, tuned to the
+    credit available to the dApp.
+
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :exports both :results value raw drawer
+
+      # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
+      K			= 0.5
+      current_prices	= dict( prices )
+
+      def current_value( basket_prices=None, currency_basket=None ):
+	  """Compute the value of a currency_basket (default: global basket) at some basket_prices
+	  (default: global prices)"""
+	  return sum( ( basket_prices or prices )[k] * ( currency_basket or basket )[k]
+		      for k in prices )
+
+      duration_hour	= 60 * 60
+      duration_day	= 24 * duration_hour
+      duration_month	= 365.25 * duration_day / 12 # 2,629,800s.
+
+      class dApp( object ):
+	  def __init__( self, duration=duration_month ): # 1 mo., in seconds
+	      """Select a random basket of computational requirements, ~ 2 +/- 1 times the minimal dApp,
+	      represented by the Holo Fuel basket, for the specified duration (min. 10% of basket). """
+	      self.duration = duration
+	      self.requires = { k: max( 1/10, rnd_std_dst( sigma=1.0, mean=2.0 )) * basket[k] * duration / duration_month
+	                        for k in basket }
+	      # Finally, compute the wealth required to fund this at current credit factor K
+	      self.wealth = current_value( current_prices, self.requires ) / K
+
+	  def credit( self, dt=None ):
+	      """Credit available for dt seconds (1 hr., default) of Hosting."""
+	      return self.wealth * K * ( dt or duration_hour ) / self.duration
+
+      class Host( object ):
+	  def __init__( self, dApp ):
+	      self.dApp = dApp
+
+	  def receipt( self, dt=None ):
+	      """Generate receipt for dt seconds worth of hosting our dApp; spend all available credit.  This
+	      could be acheived, for example, by selecting a lower pricing teir (thus worse performance)."""
+	      avail	= self.dApp.credit( dt=dt )
+	      cost	= current_value( current_prices, self.dApp.requires ) * dt / self.dApp.duration
+	      return avail,{ k: self.dApp.requires[k] * current_prices[k] * avail / cost for k in basket }
+
+      h1		= Host( dApp() )
+      cost,rcpt		= h1.receipt( dt=duration_hour )
+
+      [ [ "Hosting Cost" ] + list( rcpt.keys() ), None,
+        [ "%5.2f" % cost ] + list( "%5.2f" % rcpt[k] for k in rcpt ) ]
+
+
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    | Hosting Cost |   holo |   net |   ram |  data |  cpu |
+    |--------------+--------+-------+-------+-------+------|
+    |         0.45 | 261.99 | 11.31 | 15.17 | 34.38 | 4.25 |
+    :END:
+
+    #+LATEX: }
+
 
 * Holo Fuel Value Stabilization
 
