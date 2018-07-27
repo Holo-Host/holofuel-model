@@ -63,6 +63,7 @@
      import numpy as np
      from sklearn import linear_model
      import collections
+     import math
 
      # For more info about emacs + ob-ipython integration, see: https://github.com/gregsexton/ob-ipython
 
@@ -230,11 +231,11 @@
     :RESULTS:
     | Commodity | Price | Per  | Per |
     |-----------+-------+------+-----|
-    | holo      |  2.61 | Host | mo. |
-    | net       | 44.28 | TB   | mo. |
-    | ram       |  4.47 | GB   | mo. |
-    | data      | 48.61 | TB   | mo. |
-    | cpu       |  4.85 | Core | mo. |
+    | holo      |  2.12 | Host | mo. |
+    | net       | 44.40 | TB   | mo. |
+    | ram       |  5.65 | GB   | mo. |
+    | data      | 40.72 | TB   | mo. |
+    | cpu       |  5.24 | Core | mo. |
     :END:
 
     #+LATEX: }
@@ -256,7 +257,7 @@
     :RESULTS:
     | Holo Fuel Basket Price |
     |------------------------|
-    | $108.94 / 100.00       |
+    | $96.23 / 100.00        |
     :END:
 
     #+LATEX: }
@@ -337,11 +338,11 @@
     :RESULTS:
     | Fuel |  calc/err | dApp Requirements                                                               |
     |------+-----------+---------------------------------------------------------------------------------|
-    | 4.26 | 4.40-0.14 | 1.0000 holo Host, 0.0290 net TB, 0.0311 ram GB, 0.0060 data TB, 0.0151 cpu Core |
-    | 4.45 | 4.60-0.14 | 1.0000 holo Host, 0.0208 net TB, 0.0095 ram GB, 0.0146 data TB, 0.0633 cpu Core |
-    | 4.52 | 3.99+0.53 | 1.0000 holo Host, 0.0152 net TB, 0.0231 ram GB, 0.0087 data TB, 0.0373 cpu Core |
-    | 5.01 | 4.59+0.42 | 1.0000 holo Host, 0.0243 net TB, 0.0639 ram GB, 0.0098 data TB, 0.0276 cpu Core |
-    | 4.86 | 4.63+0.24 | 1.0000 holo Host, 0.0244 net TB, 0.0491 ram GB, 0.0105 data TB, 0.0424 cpu Core |
+    | 4.11 | 3.98+0.12 | 1.0000 holo Host, 0.0198 net TB, 0.0828 ram GB, 0.0083 data TB, 0.0337 cpu Core |
+    | 2.72 | 2.85-0.13 | 1.0000 holo Host, 0.0056 net TB, 0.0293 ram GB, 0.0019 data TB, 0.0452 cpu Core |
+    | 3.62 | 3.84-0.22 | 1.0000 holo Host, 0.0210 net TB, 0.0344 ram GB, 0.0105 data TB, 0.0317 cpu Core |
+    | 3.42 | 4.31-0.89 | 1.0000 holo Host, 0.0204 net TB, 0.0375 ram GB, 0.0193 data TB, 0.0544 cpu Core |
+    | 3.38 | 3.17+0.21 | 1.0000 holo Host, 0.0014 net TB, 0.0532 ram GB, 0.0097 data TB, 0.0571 cpu Core |
     |  ... |           |                                                                                 |
     :END:
     #+LATEX: }
@@ -384,15 +385,15 @@
 
     #+RESULTS:
     :RESULTS:
-    | Score(R^2): | 0.5624696 |        |         |
+    | Score(R^2): | 0.6266597 |        |         |
     |-------------+-----------+--------+---------|
     | Commodity   | Predicted | Actual |   Error |
     |-------------+-----------+--------+---------|
-    | holo        |      2.61 |   2.61 | -0.193% |
-    | net         |     44.15 |  44.28 | -0.284% |
-    | ram         |      4.66 |   4.47 | +4.295% |
-    | data        |     47.60 |  48.61 | -2.066% |
-    | cpu         |      4.76 |   4.85 | -1.841% |
+    | holo        |      2.12 |   2.12 | +0.121% |
+    | net         |     44.51 |  44.40 | +0.245% |
+    | ram         |      5.39 |   5.65 | -4.552% |
+    | data        |     41.57 |  40.72 | +2.078% |
+    | cpu         |      5.10 |   5.24 | -2.727% |
     :END:
 
     #+LATEX: }
@@ -417,7 +418,7 @@
     :RESULTS:
     | Holo Fuel Price Recovered | vs. Actual |   Error |
     |---------------------------+------------+---------|
-    | $108.60 / 100.00          |     108.94 | -0.310% |
+    | $96.16 / 100.00           |      96.23 | -0.072% |
     :END:
 
     #+LATEX: }
@@ -510,7 +511,9 @@
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
 
       # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
-      K			= 0.5
+      class K( object ): # Simplest, static K-valued
+          value		= 0.5
+
       current_prices	= dict( prices )
 
       def current_value( basket_prices=None, currency_basket=None ):
@@ -536,11 +539,11 @@
 	      self.requires = { k: rnd_std_dst( sigma=1.0, mean=2.0, minimum=1/10 ) * basket[k] * duration / duration_month
 	                        for k in basket }
 	      # Finally, compute the wealth required to fund this at current credit factor K
-	      self.wealth = current_value( current_prices, self.requires ) / K
+	      self.wealth = current_value( current_prices, self.requires ) / K.value
 
 	  def credit( self, dt=None ):
 	      """Credit available for dt seconds (1 hr., default) of Hosting."""
-	      return self.wealth * K * ( dt or duration_hour ) / self.duration
+	      return self.wealth * K.value * ( dt or duration_hour ) / self.duration
 
 	  def used( self, dt=None, mean=1.0, sigma=.1 ):
    	      """Resources used over period dt (+/- 10% default, but at least 0)"""
@@ -564,10 +567,23 @@
       hosts		= [ Host( dApp() ) for _ in range( hosts_count ) ]
       hours_count	= 24
 
+      class K_sine( K ):
+          sin_amp	= K.value * 1/100 # +/- 1% of K
+	  sin_theta	= 0
+	  sin_step	= 2 * math.pi / hosts_count / 6 # 1 cycle per 6 hours
+	  def advance( self ):
+	      self.sin_theta += self.sin_step
+          @property
+          def value( self ):
+	      return super( K_sine, self ).value + self.sin_amp * math.sin( self.sin_theta )
+
+      K			= K_sine()
+
       receipts		= []
       for _ in range( hours_count ):
           for h in hosts:
               receipts.append( h.receipt( dt=duration_hour ))
+	      K.advance()
 
       cost,rcpt		= receipts[-1]
 
@@ -606,26 +622,27 @@
     :RESULTS:
     | 1hr Hosting Cost        |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 0.233351                |    0.065407 |   0.000959 |   0.003641 |  0.000460 |   0.001480 |
+    | 0.326492                |    0.052451 |   0.001772 |   0.002669 |  0.001029 |   0.005695 |
     |-------------------------+-------------+------------+------------+-----------+------------|
     | 24hr. x 3600 Hosts Cost |             |            |            |           |            |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 22793.466819            | 5922.324433 | 119.558602 | 235.325051 | 59.594830 | 238.610280 |
+    | 24008.315733            | 5916.871044 | 117.863618 | 238.474175 | 59.625104 | 237.697099 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9483829    |             |            |            |           |            |
-    | Predicted               |        2.18 |      40.40 |       5.24 |     41.63 |       5.27 |
-    | Actual                  |        2.26 |      40.50 |       4.66 |     39.94 |       4.59 |
-    | Error                   |     -3.291% |    -0.239% |   +12.588% |   +4.233% |   +14.718% |
+    | Score(R^2) 0.9503057    |             |            |            |           |            |
+    | Predicted               |        2.38 |      38.06 |       5.04 |     45.42 |       6.10 |
+    | Actual                  |        2.47 |      38.18 |       4.18 |     43.63 |       5.41 |
+    | Error                   |     -3.512% |    -0.308% |   +20.424% |   +4.087% |   +12.730% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |       95.96 |            |            |           |            |
-    | Predict Basket          |       95.73 |            |            |           |            |
-    | Error                   |     -0.231% |            |            |           |            |
+    | Actual  Basket          |      101.38 |            |            |           |            |
+    | Predict Basket          |      101.14 |            |            |           |            |
+    | Error                   |     -0.236% |            |            |           |            |
     :END:
 
     #+LATEX: }
 
     Lets see how well an hourly linear regression tracks the actual Basket price, in 10 minute
-    intervals (so, 6 x 1-hour regression samples per hour).
+    intervals (so, 6 x 1-hour regression samples per hour).  Lets see if we can pick up the 1%
+    sine-wave variation in Credit Factor K every 6 hours:
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/receipts-regress-hourly.png :exports both
