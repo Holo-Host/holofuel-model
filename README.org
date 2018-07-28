@@ -510,82 +510,87 @@
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
 
-      # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
-      class K( object ): # Simplest, static K-valued
-          value		= 0.5
+      class credit_static( object ):# Simplest, static K-value
+          K		= 0.5
 
-      current_prices	= dict( prices )
+      # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
+      credit		= credit_static()
+
+      current_prices    = dict( prices )
 
       def current_value( basket_prices=None, currency_basket=None ):
-	  """Compute the value of a currency_basket (default: global basket) at some basket_prices
-	  (default: global prices)"""
-	  return sum( ( basket_prices or prices )[k] * ( currency_basket or basket )[k]
-		      for k in prices )
+          """Compute the value of a currency_basket (default: global basket) at some basket_prices
+          (default: global prices)"""
+          return sum( ( basket_prices or prices )[k] * ( currency_basket or basket )[k]
+                      for k in prices )
 
-      duration_hour	= 60 * 60
-      duration_day	= 24 * duration_hour
-      duration_month	= 365.25 * duration_day / 12 # 2,629,800s.
+      duration_hour     = 60 * 60
+      duration_day      = 24 * duration_hour
+      duration_month    = 365.25 * duration_day / 12 # 2,629,800s.
 
-      used_mean         = 1.0			# Hourly usage is 
-      used_sigma	= used_mean * .10 # +/-10% 
-      reqs_mean		= 2.0           	# Avg. Host is 2x minimal
-      reqs_sigma        = reqs_mean * .5	# +/- 50%
+      used_mean         = 1.0                   # Hourly usage is 
+      used_sigma        = used_mean * .10 # +/-10% 
+      reqs_mean         = 2.0                   # Avg. Host is 2x minimal
+      reqs_sigma        = reqs_mean * .5        # +/- 50%
 
       class dApp( object ):
-	  def __init__( self, duration=duration_month ): # 1 mo., in seconds
-	      """Select a random basket of computational requirements, ~ 2 +/- 1 times the minimal dApp,
-	      represented by the Holo Fuel basket, for the specified duration (min. 10% of basket). """
-	      self.duration = duration
-	      self.requires = { k: rnd_std_dst( sigma=1.0, mean=2.0, minimum=1/10 ) * basket[k] * duration / duration_month
-	                        for k in basket }
-	      # Finally, compute the wealth required to fund this at current credit factor K
-	      self.wealth = current_value( current_prices, self.requires ) / K.value
+          def __init__( self, duration=duration_month ): # 1 mo., in seconds
+              """Select a random basket of computational requirements, ~ 2 +/- 1 times the minimal dApp,
+              represented by the Holo Fuel basket, for the specified duration (min. 10% of basket). """
+              self.duration = duration
+              self.requires = { k: rnd_std_dst( sigma=1.0, mean=2.0, minimum=1/10 ) * basket[k] * duration / duration_month
+                                for k in basket }
+              # Finally, compute the wealth required to fund this at current credit factor K
+              self.wealth = current_value( current_prices, self.requires ) / credit.K
 
-	  def credit( self, dt=None ):
-	      """Credit available for dt seconds (1 hr., default) of Hosting."""
-	      return self.wealth * K.value * ( dt or duration_hour ) / self.duration
+          def credit( self, dt=None ):
+              """Credit available for dt seconds (1 hr., default) of Hosting."""
+              return self.wealth * credit.K * ( dt or duration_hour ) / self.duration
 
-	  def used( self, dt=None, mean=1.0, sigma=.1 ):
-   	      """Resources used over period dt (+/- 10% default, but at least 0)"""
-	      return { k: self.requires[k] * rnd_std_dst( sigma=sigma, mean=mean, minimum=0 ) * dt / self.duration
+          def used( self, dt=None, mean=1.0, sigma=.1 ):
+              """Resources used over period dt (+/- 10% default, but at least 0)"""
+              return { k: self.requires[k] * rnd_std_dst( sigma=sigma, mean=mean, minimum=0 ) * dt / self.duration
                        for k in self.requires }
 
       class Host( object ):
-	  def __init__( self, dApp ):
-	      self.dApp = dApp
+          def __init__( self, dApp ):
+              self.dApp = dApp
 
-	  def receipt( self, dt=None ):
-	      """Generate receipt for dt seconds worth of hosting our dApp; spend all available credit.  This
-	      could be acheived, for example, by selecting a lower pricing teir (thus worse performance)."""
-	      avail	= self.dApp.credit( dt=dt ) # Credit available
-	      used	= self.dApp.used( dt=dt, sigma=used_sigma )   # Roughly what hosting resources would be used
-	      value	= current_value( current_prices, used ) # total value of dApp Hosting resources used
-	      #print( "avail: {}, value: {}, used: {}".format( avail, value, used ))
-	      return avail,used
+          def receipt( self, dt=None ):
+              """Generate receipt for dt seconds worth of hosting our dApp; spend all available credit.  This
+              could be acheived, for example, by selecting a lower pricing teir (thus worse performance)."""
+              avail     = self.dApp.credit( dt=dt ) # Credit available
+              used      = self.dApp.used( dt=dt, sigma=used_sigma )   # Roughly what hosting resources would be used
+              value     = current_value( current_prices, used ) # total value of dApp Hosting resources used
+              #print( "avail: {}, value: {}, used: {}".format( avail, value, used ))
+              return avail,used
 
-      hosts_count	= 60 * 60 # ~1 Hosting receipt per second
-      hosts		= [ Host( dApp() ) for _ in range( hosts_count ) ]
-      hours_count	= 24
+      hosts_count       = 60 * 60 # ~1 Hosting receipt per second
+      hosts             = [ Host( dApp() ) for _ in range( hosts_count ) ]
+      hours_count       = 24
 
-      class K_sine( K ):
-          sin_amp	= K.value * 1/100 # +/- 1% of K
-	  sin_theta	= 0
-	  sin_step	= 2 * math.pi / hosts_count / 6 # 1 cycle per 6 hours
-	  def advance( self ):
-	      self.sin_theta += self.sin_step
+      class credit_sine( credit_static ):
+          def __init__( self, amp, step, **kwds ):
+              self.sine_amp     = amp 
+              self.sine_theta   = 0
+              self.sine_step    = step
+          def advance( self ):
+              self.sine_theta  += self.sine_step
           @property
-          def value( self ):
-	      return super( K_sine, self ).value + self.sin_amp * math.sin( self.sin_theta )
+          def K( self ):
+	      amp		= self.sine_amp * math.sin( self.sine_theta )
+              return super( credit_sine, self ).K + super( credit_sine, self ).K * amp
 
-      K			= K_sine()
+      # +/- .5% of credit.K,  1 cycle per 6 hours
+      credit		= credit_sine( K=0.5, amp=.5/100, step=2 * math.pi / hosts_count / 6 )
 
-      receipts		= []
+      receipts          = []
       for _ in range( hours_count ):
           for h in hosts:
               receipts.append( h.receipt( dt=duration_hour ))
-	      K.advance()
+              credit.advance()
 
-      cost,rcpt		= receipts[-1]
+      cost,rcpt         = receipts[-1]
 
       items             = [ [ rcpt[k] for k in basket ] for cost,rcpt in receipts ]
       costs             = [ cost for cost,rcpt in receipts ]
@@ -595,8 +600,8 @@
       select            = { k: [ int( k == k2 ) for k2 in basket ] for k in basket }
       predict           = { k: regression.predict( select[k] ) for k in basket }
 
-      actual_value	= current_value( current_prices )
-      predict_value	= current_value( predict )
+      actual_value      = current_value( current_prices )
+      predict_value     = current_value( predict )
       [ [ "1hr Hosting Cost" ] + list( rcpt.keys() ),
         None,
         [ "%8.6f" % cost ] + list( "%8.6f" % rcpt[k] for k in rcpt ),
@@ -605,14 +610,14 @@
         None,
         [ "%8.6f" % sum( cost for cost,rcpt in receipts ) ] + [ "%8.6f" % sum( rcpt[k] for cost,rcpt in receipts ) for k in basket ],
         None,
-	[ "Score(R^2) %.9r" % ( regression.score( items, costs )) ],
-	[ "Predicted" ] + [ "%5.2f" % predict[k] for k in basket ],
-	[ "Actual" ]    + [ "%5.2f" % current_prices[k] for k in basket ],
-	[ "Error" ]     + [ "%+5.3f%%" % (( predict[k] - current_prices[k] ) * 100 / current_prices[k] ) for k in basket ],
+        [ "Score(R^2) %.9r" % ( regression.score( items, costs )) ],
+        [ "Predicted" ] + [ "%5.2f" % predict[k] for k in basket ],
+        [ "Actual" ]    + [ "%5.2f" % current_prices[k] for k in basket ],
+        [ "Error" ]     + [ "%+5.3f%%" % (( predict[k] - current_prices[k] ) * 100 / current_prices[k] ) for k in basket ],
         None,
-	[ "Actual  Basket", "%5.2f" % actual_value ],
-	[ "Predict Basket", "%5.2f" % predict_value ],
-	[ "Error" , "%+5.3f%%" % (( predict_value - actual_value ) * 100 / actual_value ) ],
+        [ "Actual  Basket", "%5.2f" % actual_value ],
+        [ "Predict Basket", "%5.2f" % predict_value ],
+        [ "Error" , "%+5.3f%%" % (( predict_value - actual_value ) * 100 / actual_value ) ],
       ]
 
 
@@ -622,20 +627,20 @@
     :RESULTS:
     | 1hr Hosting Cost        |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 0.326492                |    0.052451 |   0.001772 |   0.002669 |  0.001029 |   0.005695 |
+    | 0.254348                |    0.064048 |   0.000793 |   0.002440 |  0.001104 |   0.004156 |
     |-------------------------+-------------+------------+------------+-----------+------------|
     | 24hr. x 3600 Hosts Cost |             |            |            |           |            |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 24008.315733            | 5916.871044 | 117.863618 | 238.474175 | 59.625104 | 237.697099 |
+    | 21154.878336            | 5946.779804 | 119.117575 | 237.113196 | 59.528866 | 237.638864 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9503057    |             |            |            |           |            |
-    | Predicted               |        2.38 |      38.06 |       5.04 |     45.42 |       6.10 |
-    | Actual                  |        2.47 |      38.18 |       4.18 |     43.63 |       5.41 |
-    | Error                   |     -3.512% |    -0.308% |   +20.424% |   +4.087% |   +12.730% |
+    | Score(R^2) 0.9484825    |             |            |            |           |            |
+    | Predicted               |        1.96 |      38.10 |       5.30 |     40.99 |       5.01 |
+    | Actual                  |        2.03 |      38.22 |       4.75 |     39.36 |       4.49 |
+    | Error                   |     -3.215% |    -0.309% |   +11.622% |   +4.157% |   +11.631% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |      101.38 |            |            |           |            |
-    | Predict Basket          |      101.14 |            |            |           |            |
-    | Error                   |     -0.236% |            |            |           |            |
+    | Actual  Basket          |       88.91 |            |            |           |            |
+    | Predict Basket          |       88.70 |            |            |           |            |
+    | Error                   |     -0.231% |            |            |           |            |
     :END:
 
     #+LATEX: }
@@ -647,25 +652,25 @@
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/receipts-regress-hourly.png :exports both
       # x is the fractional hour of the ends of each hour-long segment
-      x_divs		= 6
-      x			= [ s / x_divs + 1 for s in range( hours_count * x_divs ) ]
-      reg		= []
-      act		= []
+      x_divs            = 6
+      x                 = [ s / x_divs + 1 for s in range( hours_count * x_divs ) ]
+      reg               = []
+      act               = []
       for h in x: # Compute beg:end indices from fractional hour at end of each 1-hour range
-          beg,end	= int( (h-1) * hosts_count ),int( h * hosts_count )
+          beg,end       = int( (h-1) * hosts_count ),int( h * hosts_count )
           items         = [ [ rcpt[k] for k in basket ] for cost,rcpt in receipts[beg:end] ]
           costs         = [ cost for cost,rcpt in receipts[beg:end] ]
-	  regression.fit( items, costs )
-	  select        = { k: [ int( k == k2 ) for k2 in basket ] for k in basket }
-	  predict       = { k: regression.predict( select[k] ) for k in basket }
-	  reg.append( current_value( predict ))
-	  act.append( current_value( current_prices ))
+          regression.fit( items, costs )
+          select        = { k: [ int( k == k2 ) for k2 in basket ] for k in basket }
+          predict       = { k: regression.predict( select[k] ) for k in basket }
+          reg.append( current_value( predict ))
+          act.append( current_value( current_prices ))
       plt.plot( x, reg, label="Regress." )
       plt.plot( x, act, label="Actual" )
       plt.xlabel( "Hours" )
       plt.ylabel( "Holo Fuel" )
       plt.legend( loc="upper right" )
-      plt.title( "Hourly Price Recovery" )
+      plt.title( "Hourly Price Recovery w/ %5.2f%% K Variance" % ( credit.sine_amp * 100 ))
       plt.show()
     #+END_SRC
 
