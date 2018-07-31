@@ -58,7 +58,7 @@
 
      import matplotlib
      import matplotlib.pyplot as plt
-     plt.rcParams["figure.figsize"]     = (5,2)
+     plt.rcParams["figure.figsize"]     = (6,3)
      plt.rcParams["font.size"]          = 6
      import numpy as np
      from sklearn import linear_model
@@ -231,11 +231,11 @@
     :RESULTS:
     | Commodity | Price | Per  | Per |
     |-----------+-------+------+-----|
-    | holo      |  2.38 | Host | mo. |
-    | net       | 44.67 | TB   | mo. |
-    | ram       |  4.70 | GB   | mo. |
-    | data      | 45.99 | TB   | mo. |
-    | cpu       |  4.66 | Core | mo. |
+    | holo      |  2.67 | Host | mo. |
+    | net       | 42.45 | TB   | mo. |
+    | ram       |  4.55 | GB   | mo. |
+    | data      | 33.31 | TB   | mo. |
+    | cpu       |  5.83 | Core | mo. |
     :END:
 
     #+LATEX: }
@@ -257,7 +257,7 @@
     :RESULTS:
     | Holo Fuel Basket Price |
     |------------------------|
-    | $102.78 / 100.00       |
+    | $106.55 / 100.00       |
     :END:
 
     #+LATEX: }
@@ -338,11 +338,11 @@
     :RESULTS:
     | Fuel |  calc/err | dApp Requirements                                                               |
     |------+-----------+---------------------------------------------------------------------------------|
-    | 3.98 | 4.19-0.21 | 1.0000 holo Host, 0.0221 net TB, 0.0000 ram GB, 0.0075 data TB, 0.1034 cpu Core |
-    | 3.63 | 4.14-0.51 | 1.0000 holo Host, 0.0211 net TB, 0.0450 ram GB, 0.0088 data TB, 0.0431 cpu Core |
-    | 3.56 | 3.74-0.17 | 1.0000 holo Host, 0.0117 net TB, 0.0441 ram GB, 0.0111 data TB, 0.0238 cpu Core |
-    | 4.41 | 4.25+0.16 | 1.0000 holo Host, 0.0120 net TB, 0.0562 ram GB, 0.0183 data TB, 0.0476 cpu Core |
-    | 4.59 | 4.03+0.56 | 1.0000 holo Host, 0.0157 net TB, 0.0348 ram GB, 0.0144 data TB, 0.0249 cpu Core |
+    | 5.88 | 5.06+0.82 | 1.0000 holo Host, 0.0340 net TB, 0.0902 ram GB, 0.0100 data TB, 0.0350 cpu Core |
+    | 3.74 | 4.14-0.41 | 1.0000 holo Host, 0.0179 net TB, 0.0577 ram GB, 0.0083 data TB, 0.0308 cpu Core |
+    | 3.60 | 4.37-0.77 | 1.0000 holo Host, 0.0133 net TB, 0.0908 ram GB, 0.0092 data TB, 0.0715 cpu Core |
+    | 3.56 | 3.38+0.18 | 1.0000 holo Host, 0.0020 net TB, 0.0416 ram GB, 0.0065 data TB, 0.0389 cpu Core |
+    | 5.13 | 4.79+0.35 | 1.0000 holo Host, 0.0251 net TB, 0.0557 ram GB, 0.0105 data TB, 0.0778 cpu Core |
     |  ... |           |                                                                                 |
     :END:
     #+LATEX: }
@@ -385,15 +385,15 @@
 
     #+RESULTS:
     :RESULTS:
-    | Score(R^2): | 0.5979783 |        |         |
+    | Score(R^2): | 0.5473851 |        |         |
     |-------------+-----------+--------+---------|
     | Commodity   | Predicted | Actual |   Error |
     |-------------+-----------+--------+---------|
-    | holo        |      2.40 |   2.38 | +0.511% |
-    | net         |     44.82 |  44.67 | +0.325% |
-    | ram         |      4.75 |   4.70 | +1.031% |
-    | data        |     44.52 |  45.99 | -3.202% |
-    | cpu         |      4.59 |   4.66 | -1.485% |
+    | holo        |      2.65 |   2.67 | -0.484% |
+    | net         |     42.33 |  42.45 | -0.273% |
+    | ram         |      4.47 |   4.55 | -1.803% |
+    | data        |     34.03 |  33.31 | +2.144% |
+    | cpu         |      5.99 |   5.83 | +2.899% |
     :END:
 
     #+LATEX: }
@@ -418,7 +418,7 @@
     :RESULTS:
     | Holo Fuel Price Recovered | vs. Actual |   Error |
     |---------------------------+------------+---------|
-    | $102.77 / 100.00          |     102.78 | -0.012% |
+    | $106.44 / 100.00          |     106.55 | -0.108% |
     :END:
 
     #+LATEX: }
@@ -511,17 +511,17 @@
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
 
       class credit_static( object ):
-          """Simplest, static K-value, unchanging basket and prices."""
-          def __init__( self, K, basket, prices ):
-              self.K          = K
-              self.basket     = dict( basket )
-              self.prices     = dict( prices )
+	  """Simplest, static K-value, unchanging basket and prices."""
+	  def __init__( self, K, basket, prices ):
+	      self.K          = K
+	      self.basket     = basket
+	      self.prices     = prices
 
-          def value( self, prices=None, basket=None ):
-              """Compute the value of a basket at some prices (default: self.basket/prices)"""
-              if prices is None: prices = self.prices
-              if basket is None: basket = self.basket
-              return sum( prices[k] * basket[k] for k in basket )
+	  def value( self, prices=None, basket=None ):
+	      """Compute the value of a basket at some prices (default: self.basket/prices)"""
+	      if prices is None: prices = self.prices
+	      if basket is None: basket = self.basket
+	      return sum( prices[k] * basket[k] for k in basket )
 
       # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
       # Use the global basket, prices defined above
@@ -535,83 +535,117 @@
       duration_month          = 365.25 * duration_day / 12 # 2,629,800s.
 
       used_mean               = 1.0                   # Hourly usage is 
-      used_sigma              = used_mean * .10       # +/-10% 
+      used_sigma              = used_mean * 10/100    # +/-10% 
       reqs_mean               = 2.0                   # Avg. Host is 2x minimal
-      reqs_sigma              = reqs_mean * .5        # +/- 50%
+      reqs_sigma              = reqs_mean * 50/100    # +/-50%
       reqs_min                = 1/10                  #   but at least this much of minimal dApp
+
       class dApp( object ):
-          def __init__( self, duration=duration_month ): # 1 mo., in seconds
-              """Select a random basket of computational requirements, some multiple of the minimal dApp
-              represented by the Holo Fuel basket (min. 10% of basket), for the specified duration."""
-              self.duration   = duration
-              self.requires   = { k: rnd_std_dst( sigma=reqs_sigma, mean=reqs_mean, minimum=reqs_min ) \
-                                       * credit.basket[k] * duration / duration_month
-                                   for k in credit.basket }
-              # Finally, compute the wealth required to fund this at current credit factor K
-              self.wealth      = credit.value( basket=self.requires ) / credit.K
-              #print( repr( self ))
+	  def __init__( self, duration=duration_month ): # 1 mo., in seconds
+	      """Select a random basket of computational requirements, some multiple of the minimal dApp
+	      represented by the Holo Fuel basket (min. 10% of basket), for the specified duration."""
+	      self.duration   = duration
+	      self.requires   = { k: rnd_std_dst( sigma=reqs_sigma, mean=reqs_mean, minimum=reqs_min ) \
+				       ,* credit.basket[k] * duration / duration_month
+				   for k in credit.basket }
+	      # Finally, compute the wealth required to fund this at current credit factor K
+	      self.wealth      = credit.value( basket=self.requires ) / credit.K
+	      #print( repr( self ))
 
-          def __repr__( self ):
-              return "<dApp using %8.2f Holo Fuel / %5.2f mo.: %s" % (
-                         credit.value( basket=self.requires ), self.duration/duration_month,
-                         ", ".join( "%6.2f %s %s" % ( self.requires[k] * self.duration/duration_month,
-                                                     commodities[k].units, k ) for k in credit.basket ))
+	  def __repr__( self ):
+	      return "<dApp using %8.2f Holo Fuel / %5.2f mo.: %s" % (
+			 credit.value( basket=self.requires ), self.duration/duration_month,
+			 ", ".join( "%6.2f %s %s" % ( self.requires[k] * self.duration/duration_month,
+						     commodities[k].units, k ) for k in credit.basket ))
 
-          def available( self, dt=None ):
-              """Credit available for dt seconds (1 hr., default) of Hosting."""
-              return self.wealth * credit.K * ( dt or duration_hour ) / self.duration
+	  def available( self, dt=None ):
+	      """Credit available for dt seconds (1 hr., default) of Hosting."""
+	      return self.wealth * credit.K * ( dt or duration_hour ) / self.duration
 
-          def used( self, dt=None, mean=1.0, sigma=.1 ):
-              """Resources used over period dt (+/- 10% default, but at least 0)"""
-              return { k: self.requires[k] * rnd_std_dst( sigma=sigma, mean=mean, minimum=0 ) * dt / self.duration
-                       for k in self.requires }
+	  def used( self, dt=None, mean=1.0, sigma=.1 ):
+	      """Resources used over period dt (+/- 10% default, but at least 0)"""
+	      return { k: self.requires[k] * rnd_std_dst( sigma=sigma, mean=mean, minimum=0 ) * dt / self.duration
+		       for k in self.requires }
 
       class Host( object ):
-          def __init__( self, dApp ):
-              self.dApp       = dApp
+	  def __init__( self, dApp ):
+	      self.dApp       = dApp
 
-          def receipt( self, dt=None ):
-              """Generate receipt for dt seconds worth of hosting our dApp; spend all available credit.  This
-              could be acheived, for example, by selecting a lower pricing teir (thus worse performance)."""
-              avail           = self.dApp.available( dt=dt )                # Credit available
-              used            = self.dApp.used( dt=dt, sigma=used_sigma )   # Roughly what hosting resources would be used
-              value           = credit.value( basket=used )                 # total value of dApp Hosting resources used
-              #print( "avail: {}, value: {}, used: {}".format( avail, value, used ))
-              return avail,used
+	  def receipt( self, dt=None ):
+
+	      """Generate receipt for dt seconds worth of hosting our dApp.  Hosting costs more/less as prices
+	      fluctuate, and dApp owners can spend more/less depending on how much credit they have
+	      available.  This spending reduction could be acheived, for example, by selecting a lower
+	      pricing teir (thus worse performance)."""
+
+	      avail           = self.dApp.available( dt=dt )                # Credit available for this period
+	      used            = self.dApp.used( dt=dt, mean=used_mean, sigma=used_sigma ) # Hhosting resources used
+	      value           = credit.value( basket=used )                 # total value of dApp Hosting resources used
+
+	      # We have the value of the hosting the dApp used, at present currency.prices.  The Host
+	      # wants to be paid 'value', but the dApp owner only has 'avail' to pay. When money is
+	      # plentiful/tight, dApp owners could {up,down}grade their service teir and pay more or less.
+	      # So, we'll split the difference.  This illustrates the effects of both cost variations and
+	      # credit availability variations in the ultimate cost of Hosting, and hence in the recovered
+	      # price information used to adjust credit.K.
+
+	      #print( "avail: {}, value: {}, used: {}".format( avail, value, used ))
+	      return (( avail + value ) / 2, used )
 
       hosts_count             = 60 * 60 # ~1 Hosting receipt per second
       hosts                   = [ Host( dApp() ) for _ in range( hosts_count ) ]
       hours_count             = 24
 
       class credit_sine( credit_static ):
-          def __init__( self, amp, step, **kwds ):
-              self.sine_amp   = amp 
-              self.sine_theta = 0
-              self.sine_step  = step
-              self.K_base     = 0
-              super( credit_sine, self ).__init__( **kwds )
+	  """Compute a sine scale as the basis for simulating various credit system variances."""
+	  def __init__( self, amp, step, **kwds ):
+	      self.sine_amp   = amp 
+	      self.sine_theta = 0
+	      self.sine_step  = step
+	      self.K_base     = 0
+	      super( credit_sine, self ).__init__( **kwds )
 
-          def advance( self ):
-              self.sine_theta+= self.sine_step
-          @property
-          def K( self ):
-              amp             = self.sine_amp * math.sin( self.sine_theta )
-              return self.K_base + self.K_base * amp
-          @K.setter
-          def K( self, value ):
-              self.K_base     = value
+	  def advance( self ):
+	      self.sine_theta+= self.sine_step
 
-      # Create receipts with a credit.K fluctuating +/- .5%,  1 cycle per 6 hours
+	  def reset( self ):
+	      """Restore credit system initial conditions."""
+	      self.sine_theta = 0
+
+	  def scale( self ):
+	      return 1 + self.sine_amp * math.sin( self.sine_theta )
+
+      class credit_sine_K( credit_sine ):
+	  """Adjusts credit.K on a sine wave."""
+	  @property
+	  def K( self ):
+	      return self.K_base * self.scale()
+	  @K.setter
+	  def K( self, value ):
+	      """Assumes K_base is created when K is set in base-class constructor"""
+	      self.K_base     = value
+
+      class credit_sine_prices( credit_sine ):
+	  """Adjusts credit.prices on a sine wave."""
+	  @property
+	  def prices( self ):
+	      return { k: self.prices_base[k] * self.scale() for k in self.prices_base }
+	  @prices.setter
+	  def prices( self, value ):
+	      self.prices_base     = prices
+
+      # Create receipts with a credit.K or .prices fluctuating +/- .5%,  1 cycle per 6 hours
       #credit.advance          = lambda: None # if using credit_static...
       #credit.sine_amp         = 0
-      credit                   = credit_sine( K=0.5, amp=.5/100,
-                                       step=2 * math.pi / hosts_count / 6,
-                                       prices=prices, basket=basket ) # Start w/ the global basket
+      credit                   = credit_sine_prices( K=0.5, amp=.5/100,
+				       step=2 * math.pi / hosts_count / 6,
+				       prices=prices, basket=basket ) # Start w/ the global basket
       receipts                = []
       for _ in range( hours_count ):
-          for h in hosts:
-              receipts.append( h.receipt( dt=duration_hour ))
-              credit.advance()
+	  for h in hosts:
+	      receipts.append( h.receipt( dt=duration_hour ))
+	      credit.advance()
+      credit.reset()
 
       items                   = [ [ rcpt[k] for k in credit.basket ] for cost,rcpt in receipts ]
       costs                   = [ cost for cost,rcpt in receipts ]
@@ -624,50 +658,49 @@
       actual_value            = credit.value()
       predict_value           = credit.value( prices=predict )
       [ [ "%dhr. x %d Hosts Cost" % ( hours_count, hosts_count ) ] + list( rcpt.keys() ),
-        None,
-        [ "%8.6f" % sum( cost for cost,rcpt in receipts ) ] \
-        + [ "%8.6f" % sum( rcpt[k] for cost,rcpt in receipts ) for k in credit.basket ],
-        None,
-        [ "Score(R^2) %.9r" % ( regression.score( items, costs )) ],
-        [ "Predicted" ] + [ "%5.2f" % predict[k] for k in credit.basket ],
-        [ "Actual" ]    + [ "%5.2f" % current_prices[k] for k in credit.basket ],
-        [ "Error" ]     + [ "%+5.3f%%" % (( predict[k] - current_prices[k] ) * 100 / current_prices[k] )
-                            for k in credit.basket ],
-        None,
-        [ "Actual  Basket", "%5.2f" % actual_value ],
-        [ "Predict Basket", "%5.2f" % predict_value ],
-        [ "Error" , "%+5.3f%%" % (( predict_value - actual_value ) * 100 / actual_value ) ],
+	None,
+	[ "%8.6f" % sum( cost for cost,rcpt in receipts ) ] \
+	+ [ "%8.6f" % sum( rcpt[k] for cost,rcpt in receipts ) for k in credit.basket ],
+	None,
+	[ "Score(R^2) %.9r" % ( regression.score( items, costs )) ],
+	[ "Predicted" ] + [ "%5.2f" % predict[k] for k in credit.basket ],
+	[ "Actual" ]    + [ "%5.2f" % credit.prices[k] for k in credit.basket ],
+	[ "Error" ]     + [ "%+5.3f%%" % (( predict[k] - credit.prices[k] ) * 100 / credit.prices[k] )
+			    for k in credit.basket ],
+	None,
+	[ "Actual  Basket", "%5.2f" % actual_value ],
+	[ "Predict Basket", "%5.2f" % predict_value ],
+	[ "Error" , "%+5.3f%%" % (( predict_value - actual_value ) * 100 / actual_value ) ],
       ]
-
     #+END_SRC
 
     #+RESULTS:
     :RESULTS:
     | 24hr. x 3600 Hosts Cost |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 22482.664667            | 5946.479350 | 117.878914 | 234.696838 | 59.027434 | 236.954237 |
+    | 25421.131991            | 5977.763608 | 119.279426 | 237.151330 | 58.966540 | 237.002337 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9495018    |             |            |            |           |            |
-    | Predicted               |        2.27 |      32.76 |       5.71 |     41.66 |       5.25 |
-    | Actual                  |        2.03 |      38.22 |       4.75 |     39.36 |       4.49 |
-    | Error                   |    +12.137% |   -14.292% |   +20.103% |   +5.844% |   +16.877% |
+    | Score(R^2) 0.9867390    |             |            |            |           |            |
+    | Predicted               |        2.62 |      42.36 |       4.97 |     34.37 |       6.26 |
+    | Actual                  |        2.67 |      42.45 |       4.55 |     33.31 |       5.83 |
+    | Error                   |     -1.777% |    -0.205% |    +9.204% |   +3.192% |    +7.473% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |       94.84 |            |            |           |            |
-    | Predict Basket          |       94.62 |            |            |           |            |
-    | Error                   |     -0.230% |            |            |           |            |
+    | Actual  Basket          |      106.55 |            |            |           |            |
+    | Predict Basket          |      106.45 |            |            |           |            |
+    | Error                   |     -0.101% |            |            |           |            |
     :END:
 
     #+LATEX: }
 
-    Lets see how well an hourly linear regression tracks the actual Basket price, in 10 minute
-    intervals (so, 6 x 1-hour regression samples per hour).  Lets see if we can pick up the 1%
+    Lets see how well an hourly linear regression tracks the actual Basket price, in 5 minute
+    intervals (so, 12 x 1-hour regression samples per hour).  Lets see if we can pick up the 1%
     sine-wave variation in Credit Factor K every 6 hours:
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/receipts-regress-hourly.png :exports both
-      # x is the fractional hour of the ends of each hour-long segment
-      x_divs            = 6
-      x                 = [ s / x_divs + 1 for s in range( hours_count * x_divs ) ]
+      # x is the fractional hour of the end of each hour-long segment
+      x_divs            = 12 # 5 minutes
+      x                 = [ 1 + s / x_divs for s in range( hours_count * x_divs ) ]
       reg               = []
       act               = []
       for h in x: # Compute beg:end indices from fractional hour at end of each 1-hour range
@@ -684,7 +717,8 @@
       plt.xlabel( "Hours" )
       plt.ylabel( "Holo Fuel" )
       plt.legend( loc="upper right" )
-      plt.title( "Hourly Price Recovery w/ %5.2f%% K Variance" % ( credit.sine_amp * 100 ))
+      plt.title( "Hourly Price Recovery w/ %5.2f%% %s Variance" % (
+          credit.sine_amp * 100, credit.__class__.__name__.split( '_' )[-1] ))
       plt.show()
     #+END_SRC
 
@@ -694,6 +728,9 @@
     #+LATEX: }
 
 *** Simple Credit Feedback Control
+    :PROPERTIES:
+    :ID:       F2384A02-DE6B-47C6-BA84-DAD4E28FED7F
+    :END:
 
     Finally, we have almost everything required to actually control the currency, using a simple PID controller.
 
@@ -805,9 +842,118 @@
 
 
     Lets implement a simple credit system that adjust K via the PID loop to move the price of the
-    credit basket towards our target value.
+    credit basket towards our target value.  We'll produce a stream of Hosting receipts, based on
+    the current basket price and available credit.  Then, we'll compute the 
 
 
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :file images/receipts-regress-hourly-PID.png :exports both
+
+      class credit_sine_prices_pid_K( credit_sine_prices ):
+	  """Adjusts credit.K via PID, in response to prices varying according to a sine wave."""
+	  def __init__( self, price_target=None, price_initial=None, Kpid=None, now=None, **kwds ):
+	      """A current price_target (default: 100.0 ) and price_feedback (default: price_target) is 
+	      is used to initialize a PID loop."""
+	      super( credit_sine_prices_pid_K, self ).__init__( **kwds )
+	      self.now        = now or 0 # hours?
+	      self.price_target = price_target or basket_target # 100.0 Holo Fuel / basket, defined above
+	      self.price_curr = price_initial or self.price_target
+	      self.price_curr_trend = [(self.now, self.price_curr)]
+	      self.inflation  = self.price_curr / self.price_target
+              self.inflation_trend = [(self.now, self.inflation)]
+	      # Bumpless start at setpoint 1.0, present inflation, and output of current K
+	      self.K_control  = controller( # TODO: compute Kpid fr. desired correction factors vs. avg target dt
+				 Kpid = Kpid or ( .1, .1, .001 ),
+				  now = self.now,
+			     setpoint = 1.0,                  # Target is no {in,de}flation!
+			      process = self.inflation,
+			       output = self.K )
+              self.K_trend    = [(self.now, self.K)]
+	      self.PID_trend  = [(self.now, ( self.K_control.P, self.K_control.I, self.K_control.D ))]
+	      self.price_trend= [(self.now, self.value())]
+
+	  def price_feedback( self, price, now ):
+	      """Supply a computed basket price at time 'now', and compute K via PID."""
+	      self.now        = now
+	      self.price_curr = price
+	      self.price_curr_trend += [(self.now, self.price_curr)]
+	      self.inflation  = self.price_curr / self.price_target
+              self.inflation_trend += [(self.now, self.inflation)]
+	      self.K          = self.K_control.loop(
+			      process = self.inflation,
+                                  now = self.now )
+              self.K_trend   += [(self.now, self.K)]
+	      self.PID_trend += [(self.now, ( self.K_control.P, self.K_control.I, self.K_control.D ))]
+	      self.price_trend+= [(self.now, self.value())]
+
+	  def receipt_feedback( self, receipts, now ):
+	      """Extract price_feedback from a sequence of receipts"""
+	      items           = [ [ rcpt[k] for k in credit.basket ] for cost,rcpt in receipts ]
+	      costs           = [ cost                               for cost,rcpt in receipts ]
+	      regression.fit( items, costs )
+	      select          = { k: [ int( k == k2 ) for k2 in self.basket ] for k in self.basket }
+	      predict         = { k: regression.predict( select[k] ) for k in self.basket }
+	      self.price_feedback( self.value( prices=predict ), now=now )
+
+      credit                  = credit_sine_prices_pid_K( 
+                                       K=0.5, amp=.5/100,
+                                       step=2 * math.pi / hosts_count / 6,
+                                       prices=prices, basket=basket, # Start w/ the global basket
+                                       price_target=basket_target,
+				       price_initial=credit.value() ) # Est. initial price --> infllation
+
+      print( "credit.basket: %r, prices: %r" % ( credit.basket, credit.prices ))
+
+      receipts                = []
+      for x in range( hours_count ):
+	  for h in hosts:
+	      receipts.append( h.receipt( dt=duration_hour ))
+	      if len( receipts ) >= hosts_count \
+	         and  int(  len( receipts )       * x_divs / hosts_count ) \
+                   != int(( len( receipts ) + 1 ) * x_divs / hosts_count ):
+		  # About to compute next hours / x_divs' receipt! Compute and update prices using last
+		  # hour's receipts.  The now time (in fractional hours) is the length of receipts.
+		  credit.receipt_feedback( receipts[-hosts_count:], now=len( receipts ) / hosts_count )
+	      credit.advance() # adjust market prices algorithmically
+      credit.reset()
+
+      # Show how Inflation / K, Price, and PID evolve over time
+      fig,(ax1,ax2,ax3,ax4,ax5)= plt.subplots( 5, sharex=True, figsize=(6,6) )
+      ax1.plot( [ x for x,P in credit.price_curr_trend ], [ P for x,P in credit.price_curr_trend ],
+               "g-",    label="Price (Feedback)" )
+      ax1.plot( [ x for x,P in credit.price_trend ], [ P for x,P in credit.price_trend ],
+               "g-",    label="Price" )
+      ax1.legend( loc="right" )
+
+      ax2.plot( [ x for x,I in credit.inflation_trend ], [ I for x,I in credit.inflation_trend ],
+                "r-",   label="Inflation" )
+      ax2.legend( loc="right" )
+     
+      ax3.plot( [ x for x,K in credit.K_trend ],         [ K for x,K in credit.K_trend ],
+                "b-",   label="K" )
+      ax3.legend( loc="right" )
+
+      ax4.plot(  [ x for x,(P,I,D) in credit.PID_trend ],[ P for x,(P,I,D) in credit.PID_trend ],
+               "r-",    label="P" )
+      ax4.plot(  [ x for x,(P,I,D) in credit.PID_trend ],[ D for x,(P,I,D) in credit.PID_trend ],
+               "b-",    label="D" )
+      ax4.legend( loc="right" )
+
+      ax5.plot(  [ x for x,(P,I,D) in credit.PID_trend ],[ I for x,(P,I,D) in credit.PID_trend ],
+               "g-",    label="I" )
+      ax5.legend( loc="right" )
+
+      plt.xlim( 0.01, 5.0 )
+      ax1.set_title( "Hourly Inflation Stabilization (%d Receipts/hr.)" % ( hosts_count ))
+      plt.show()
+      print( "done" )
+
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:images/receipts-regress-hourly-PID.png]]
+
+    #+LATEX: }
 
 * Holo Fuel Value Stabilization
 
