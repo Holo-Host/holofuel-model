@@ -1165,12 +1165,12 @@ plt.show()
     accomplish this is to discourage creation of Holo Fuel (both by decreasing buying and creating
     Holo Fuel in the system, and to encourage the redemption of Holo Fuel), by increasing the
     exchange rate.  The inverse (lowering exchange rate) would result in more Holo Fuel creation
-    (and less redemption), reducing the Holo Fuel available, and thus reducing Holo Fuel deflation.
+    (and less redemption), increasing the Holo Fuel available, and thus reducing Holo Fuel deflation.
 
     The Reserve Accounts can respond very quickly, inducing Holo Hosts with Holo Fuel balances to
     quickly convert them out to other currencies when exchange rates rise.  Inversely, reducing
     rates would release waiting dApp owners to purchase more Holo Fuel for hosting their dApps,
-    deploying it into the economy to address deflation (increasing computational commodity prices,
+    deploying it into the economy to address deflation (the increase of computational commodity prices,
     as measured in Holo Fuel).
     
     A PD (Proportional Differential) control might be ideal for this.  This type of control responds
@@ -1254,12 +1254,14 @@ for t in range( 1000 ):
 
 *** Simple LIFO Exchange
 
-    Holo Fuel is an accounting mechanism, representing a pre-purchased amount of Hosting, within the
-    Holo system.  It is not a traditional currency, nor is it a commodity.  By ensuring
-    value-stability, one unit of Holo Fuel is guaranteed to purchase 1 basket of computational
-    resources within the system.  It is much more similar to an Apple iTunes card balance,
-    redeemable later for various goods and services at some expected value (eg. about USD$1 per
-    iTunes card unit).
+    Holo Fuel is an accounting mechanism, representing a pre-purchased amount of Hosting within the
+    Holo system.  It is not a traditional currency, nor is it a commodity. It is a pre-purchased
+    amount of value denominated in units of a basket containing defined amounts of the computational
+    resources comprising the service.  By ensuring value-stability, one unit of Holo Fuel is
+    guaranteed to purchase 1 basket of computational resources within the system.  It is similar to
+    an Apple iTunes card balance or airline points balance, redeemable later for various goods and
+    services at some expected value (eg. about USD$1 per iTunes card unit, USD$.015 per United
+    MileagePlus point).
 
     This means that, necessarily, the exchange rates between Holo Fuel and various external
     currencies must be dynamically controlled to maintain this invariant.  Failing to do so will
@@ -1268,7 +1270,7 @@ for t in range( 1000 ):
     the amount of Hosting required when used later), or C) cannot be sold by Hosting service owners,
     later, for a reasonably stable real value in some external currency?
 
-    Therefore, allowing arbitrary exchange in/out of Holo Fuel at some arbitrary historical exchange
+    Therefore, allowing uncontrolled exchange in/out of Holo Fuel at some arbitrary historical exchange
     rate (eg. the rate the last person bought in at) is probably not viable.  When real exchange
     rates drop (ie. due to currency values fluctuating), internal Holo Fuel holders would be
     encouraged to sell Holo Fuel for say USD$ at a premium vs. its actual current market value.
@@ -1281,12 +1283,19 @@ for t in range( 1000 ):
 *** Active Exchange Flow Balancing
 
     In order to detect and respond to both A) Exchange currency value fluctuations, and B) maintain
-    the desired level of inward/outward flow of Holo Fuel required to maintain value stability, we need to control:
+    the desired level of inward/outward flow of Holo Fuel required to maintain value stability, we
+    need to control the Price (premium vs. Book Value), Spread (differential between Buy/Sell
+    prices), Ratio (difference between Buy/creation and Sell/redemption), and Volume (total amount
+    of Buy/Sell activity).
+
+    To leave any of these uncontrolled, is to place our Reserves at grave risk of being looted, and
+    the Holo Fuel currency system at risk of losing its value stability due to uncontrolled
+    {in,de}flation.
 
 **** The relative exchange activity level between the various exchanges
 
      Increasing inflow through one Exchange, while increasing outflow through other Exchange(s)
-     indicates a pricing fluctuation in that Exchange currency. 
+     indicates an external value fluctuation in that Exchange currency vs. others. 
 
      The premium of the Exchange rate vs. the Book Value should rise/fall, until net inflow/outflow
      is roughly equivalent through all Exchanges, taking into account their overall relative
@@ -1305,18 +1314,27 @@ for t in range( 1000 ):
      a certain target ratio of buying to selling (eg. 3 Holo Fuel bought for every 1 sold), leading
      to net increase/decrease in Holo Fuel supply.
 
-**** Limits on the absolute buy/sell amounts
+     Sometimes this may be impossible.  For example, if we desire net redemption of Holo Fuel, but
+     this requires a precipitous increase in our USD$ Sell price vs. our Buy price, each net unit
+     sold will cost us USD$ reserves.
+
+**** Limits on the relative and absolute buy/sell amounts
 
      Even when equilibrium inflow between Exchanges is reached, and a target buy/sell ratio is
      reached, the absolute rates of purchase (creation) or redemption of Holo Fuel must be
      controlled.  We neither wish to empty our Reserve accounts, or allow a sudden inflow of massive
      amounts of Holo Fuel credit.
 
-     As the amount of transactions increases within Holo Fuel, the capacity for inflow/outflow
-     increases.  The size and number of buy/sell transactions allowed on each exchange per unit time
-     will be limited to a certain percentage of the Monetary Velocity of the Holo Fuel system.
+     Instead of further adjusting Buy/Sell differentials, we can limit Buy/Sell ratios to a be
+     above/below a certain fraction, eg. 3 units bought for every unit sold.  This will also serve
+     to limit large net inflows/redemptions during abrupt external currency price events, and our
+     slow-moving base premium/discount PID loops reach an equilibrium price.
 
-*** Incomplete...
+     As the amount of transactions increases within Holo Fuel, the capacity for absorbing large
+     inflow/outflow increases.  The size and number of buy/sell transactions allowed on each
+     exchange per unit time will be limited to a certain percentage of the Monetary Velocity of the
+     Holo Fuel system.
+
 
 * Footnotes
 
