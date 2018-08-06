@@ -54,7 +54,7 @@
    Thus, the basket of commodities defining the value of USD$100 =~= 100 Holo Fuel could be defined as:
 
    #+LATEX: {\scriptsize
-   #+BEGIN_SRC ipython :session :exports results :results raw drawer
+   #+BEGIN_SRC ipython :session :exports both :results raw drawer
 
 %matplotlib inline
 %config InlineBackend.figure_format = 'retina'
