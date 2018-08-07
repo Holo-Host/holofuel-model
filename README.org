@@ -222,27 +222,6 @@ our decisions both internally, and where appropriate, externally.
 
    #+BEGIN_SRC ditaa :file images/holofuel-overview.png :cmdline -r -S -o
 
-<<<<<<< HEAD
-    +----------------------------------------------+
-    |      |"K"                                    |
-    |      v                                       |
-    |  +--------+               +--------+         |
-    |  |Host    |               |        |         |
-    |  |K*Wealth|-+  Receipts   | PID    |  "K"    |
-    |  |==Credit| |------------>|        |---------+
-    |  +--------+ |     |       +--------+  Credit
-    |    |==Credit|     |                   Factor
-    |    +--------+     |
-    |          ^        |
-    +---+  Holo|        |
-     "K"|  Fuel|        |
-        v      |        |
-       +--------+       |
-       |dApp    |<------+
-       |K*Wealth|-+
-       |==Credit| |
-       +--------+ |
-=======
            +---------------------------------------+
            | "K"                                   |
            v                                       |
@@ -262,7 +241,6 @@ our decisions both internally, and where appropriate, externally.
        |K*Wealth|-+                                |
        |==Credit| |<-------------------------------+
        +--------+ | "K"
->>>>>>> master
          |==Credit|
          +--------+
 
@@ -439,7 +417,7 @@ weight                  = {
    Multi-variate!) can be used to discover the average fixed (Holo Hosting premium) and variable
    (CPU, ...) component costs included in the prices, and therefore the current commodity basket
    price.
-   
+
 >>>>>>> master
 *** Recovering Commodity Basket Costs
 
@@ -719,7 +697,7 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
 
 =======
     tranches is maintained; each Host inserts itself into the correct table.[fn:1]
-   
+
 >>>>>>> master
     A dApp owner also selects the resource requirements (eg. cpu: avx-128+, 4+ cores, ...) service
     level and pricing (eg. median).
@@ -1260,7 +1238,7 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
     def advance( self ):
         """About once per integral time period (eg. hour), randomly purturb the pricing of one
         commodity in the basket.  We'll manipulate the underlying self.prices_base (which is being
-        modulated systematically to produce the base commodity prices).  
+        modulated systematically to produce the base commodity prices).
         """
         super( credit_sine_prices_pid_K, self ).advance()
         if int( getattr( self, 'adv_h', 0 )) != int( self.now ):
@@ -1293,7 +1271,7 @@ credit                  = credit_sine_prices_pid_K(
 # of service to stay within their available credit.
 >>>>>>> master
 
-credit                  = credit_sine_prices_pid_K( 
+credit                  = credit_sine_prices_pid_K(
                               K = 0.5,
                             amp = .5/100,
                            step = 2 * math.pi / hosts_count / 6,
@@ -1399,7 +1377,7 @@ plt.show()
 
     No single agent, or group of colluding agents, must have influence over "K".
 
-    - The Holo Tranche dApp 
+    - The Holo Tranche dApp
       - Knows all Hosts within the Tranche (transfers Hosts moving from/to adjacent Tranches)
       - Collects Hosting receipts from its Host, on behalf of the entire Tranche of similar Hosts.
       - Computes Holo Fuel commodity prices and Basket price on a certain interval (eg. 5m.), over
@@ -1408,8 +1386,8 @@ plt.show()
     - The Holo dApp
       - Knows all Tranches providing Holo Hosting (N-dimensional array of Tranches)
       - Collects commodity and Basket price computations from each Holo Tranche (eventually consistent)
-      - Computes median 
-      
+      - Computes median
+
 
 * Holo Fuel Value Stabilization
 
@@ -1597,7 +1575,7 @@ for t in range( 1000 ):
 <<<<<<< HEAD
      indicates a pricing fluctuation in that Exchange currency.
 =======
-     indicates an external value fluctuation in that Exchange currency vs. others. 
+     indicates an external value fluctuation in that Exchange currency vs. others.
 >>>>>>> master
 
      The premium of the Exchange rate vs. the Book Value should rise/fall, until net inflow/outflow
@@ -1674,4 +1652,3 @@ that a simple multiple linear regression over the data, producing a linear model
 dependent variable) as a function of the commodities (explanatory variables) is sufficient.  From
 that model, we can predict the individual commodity prices, and then multiply by the amounts of each
 commodity in the Holo Fuel Basket to arrive at the Basket price.
-
