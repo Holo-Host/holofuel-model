@@ -267,7 +267,7 @@ our decisions both internally, and where appropriate, externally.
    Thus, the basket of commodities defining the value of USD$100 =~= 100 Holo Fuel could be defined as:
 
    #+LATEX: {\scriptsize
-   #+BEGIN_SRC ipython :session :exports results :results raw drawer
+   #+BEGIN_SRC ipython :session :exports both :results raw drawer
 
 %matplotlib inline
 %config InlineBackend.figure_format = 'retina'
@@ -390,9 +390,12 @@ weight                  = {
     counterbalancing this inflationary trend.
 
     For each metric, the price of service on the median Holo Host node will be used; 1/2 will be
-    below (weaker, priced at a discount), 1/2 above (more powerful, priced at a premium).  This will
-    nullify the natural inflationary nature of Holo Fuel, if we simply defined it in terms of fixed
-    2018 computational resources.
+    below (weaker, priced at a discount), 1/2 above (more powerful, priced at a premium).  As the
+    stock of Holo Hosts grows and changes over time, the median unit of, say, 'cpu' will also
+    change. A 2.4GHz AVX-128 single-thread core may be the median 'cpu' to begin with, but in a
+    couple of years, an 4.0GHz 2-thread AVX-512 capable 'cpu' may become the median resource.  This
+    will nullify the natural inflationary nature of Holo Fuel, if we simply defined it in terms of
+    fixed 2018 computational resources.
 
 ** Commodity Price Discovery
 
@@ -404,10 +407,18 @@ weight                  = {
    as Distributed Oracles), or trust a separate module to do so. In Holo Fuel, we host the sale of
    Holo Host services to dApp owners, so we know the historical prices.
 
+<<<<<<< HEAD
    When a history of Holo Hosting service prices is available, Linear Regression can be used to
    discover the average fixed (Holo Hosting premium) and variable (CPU, ...) component costs
    included in the prices, and therefore the current commodity basket price.
 
+=======
+   When a history of Holo Hosting service prices is available, Multiple Linear Regression (not
+   Multi-variate!) can be used to discover the average fixed (Holo Hosting premium) and variable
+   (CPU, ...) component costs included in the prices, and therefore the current commodity basket
+   price.
+   
+>>>>>>> master
 *** Recovering Commodity Basket Costs
 
     To illustrate price recovery, lets begin with simulated prices of a basket of commodities.  A
@@ -426,25 +437,17 @@ weight                  = {
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
 
-def clamp( val, lim ):
-    """Return value if between range limits, otherwise the limit; math.nan indicates no limit"""
-    if val < lim[0]:
-        return lim[0]
-    elif val > lim[1]:
-        return lim[1]
-    return val
-
 def rnd_std_dst( sigma, mean=0, minimum=None, maximum=None ):
-    """Random values with mean, in a standard distribution w/ sigma, clamped to given minimum/maximum."""
-    return clamp( sigma * np.random.randn() + mean,
-                  ( math.nan if minimum is None else minimum,
-                    math.nan if maximum is None else maximum ))
+    """Random values with mean, in a standard distribution w/ sigma, clipped to given minimum/maximum."""
+    val             = sigma * np.random.randn() + mean
+    return val if minimum is None and maximum is None else np.clip( val, a_min=minimum, a_max=maximum )
 
 # To simulate initial pricing, lets start with an estimate of proportion of basket value represented
 # by each amount of the basket's commodities.  Prices of each of these commodities is free to float
 # in a real market, but we'll start with some pre-determined "weights"; indicating that the amount
 # of the specified commodity holds a greater or lesser proportion of the basket's value.
 # Regardless, 100 Holo Fuel is guaranteed to buy the entire basket.
+
 prices                  = {}
 for k in basket:
     price_mean          = basket_target * weight[k] / basket[k] # target price: 1 Holo Fuel == 1 basket / basket_target
@@ -462,11 +465,11 @@ for k in basket:
     :RESULTS:
     | Commodity | Price | Per  | Per |
     |-----------+-------+------+-----|
-    | holo      |  1.80 | Host | mo. |
-    | net       | 35.86 | TB   | mo. |
-    | ram       |  5.52 | GB   | mo. |
-    | data      | 46.27 | TB   | mo. |
-    | cpu       |  4.58 | Core | mo. |
+    | holo      |  2.54 | Host | mo. |
+    | net       | 42.19 | TB   | mo. |
+    | ram       |  5.34 | GB   | mo. |
+    | data      | 41.98 | TB   | mo. |
+    | cpu       |  4.90 | Core | mo. |
     :END:
 
     #+LATEX: }
@@ -488,7 +491,7 @@ basket_price            = sum( basket[k] * prices[k] for k in basket )
     :RESULTS:
     | Holo Fuel Basket Price |
     |------------------------|
-    | $106.62 / 100.00       |
+    | $105.27 / 100.00       |
     :END:
 
     #+LATEX: }
@@ -569,11 +572,11 @@ for _ in range( number ):
     :RESULTS:
     | Fuel |  calc/err | dApp Requirements                                                               |
     |------+-----------+---------------------------------------------------------------------------------|
-    | 4.56 | 5.22-0.67 | 1.0000 holo Host, 0.0457 net TB, 0.0659 ram GB, 0.0089 data TB, 0.0171 cpu Core |
-    | 4.51 | 3.85+0.66 | 1.0000 holo Host, 0.0148 net TB, 0.0245 ram GB, 0.0086 data TB, 0.0217 cpu Core |
-    | 3.84 | 4.04-0.20 | 1.0000 holo Host, 0.0153 net TB, 0.0689 ram GB, 0.0053 data TB, 0.0463 cpu Core |
-    | 3.87 | 4.12-0.25 | 1.0000 holo Host, 0.0114 net TB, 0.0535 ram GB, 0.0173 data TB, 0.0022 cpu Core |
-    | 4.10 | 4.20-0.10 | 1.0000 holo Host, 0.0237 net TB, 0.0144 ram GB, 0.0066 data TB, 0.0505 cpu Core |
+    | 3.75 | 4.34-0.59 | 1.0000 holo Host, 0.0219 net TB, 0.0343 ram GB, 0.0154 data TB, 0.0111 cpu Core |
+    | 3.55 | 4.19-0.64 | 1.0000 holo Host, 0.0211 net TB, 0.0278 ram GB, 0.0097 data TB, 0.0423 cpu Core |
+    | 3.98 | 4.24-0.26 | 1.0000 holo Host, 0.0172 net TB, 0.0200 ram GB, 0.0144 data TB, 0.0546 cpu Core |
+    | 3.58 | 3.69-0.11 | 1.0000 holo Host, 0.0067 net TB, 0.0413 ram GB, 0.0107 data TB, 0.0402 cpu Core |
+    | 5.36 | 4.65+0.71 | 1.0000 holo Host, 0.0178 net TB, 0.0537 ram GB, 0.0215 data TB, 0.0353 cpu Core |
     |  ... |           |                                                                                 |
     :END:
     #+LATEX: }
@@ -616,15 +619,15 @@ predict                 = { k: regression.predict( select[k] )[0] for k in baske
 
     #+RESULTS:
     :RESULTS:
-    | Score(R^2): | 0.6394486 |        |          |
-    |-------------+-----------+--------+----------|
-    | Commodity   | Predicted | Actual |    Error |
-    |-------------+-----------+--------+----------|
-    | holo        |      2.12 |   1.80 | +17.588% |
-    | net         |     45.99 |  35.86 | +28.235% |
-    | ram         |      4.29 |   5.52 | -22.207% |
-    | data        |     40.50 |  46.27 | -12.472% |
-    | cpu         |      5.83 |   4.58 | +27.324% |
+    | Score(R^2): | 0.5625595 |        |         |
+    |-------------+-----------+--------+---------|
+    | Commodity   | Predicted | Actual |   Error |
+    |-------------+-----------+--------+---------|
+    | holo        |      2.52 |   2.54 | -0.736% |
+    | net         |     41.76 |  42.19 | -1.018% |
+    | ram         |      5.34 |   5.34 | -0.049% |
+    | data        |     43.47 |  41.98 | +3.555% |
+    | cpu         |      5.10 |   4.90 | +4.039% |
     :END:
 
     #+LATEX: }
@@ -649,7 +652,7 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     :RESULTS:
     | Holo Fuel Price Recovered | vs. Actual |   Error |
     |---------------------------+------------+---------|
-    | $96.24 / 100.00           |      96.16 | +0.079% |
+    | $105.16 / 100.00          |     105.27 | -0.108% |
     :END:
 
     #+LATEX: }
@@ -660,10 +663,13 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
 
 ** Simple Value Stability Control via PID
 
-   The simplest implementation of value-stability is to directly control the credit supply.  Lets
-   establish a simple wealth-backed monetary system with a certain amount of wealth attached to it,
-   from which we extend credit at a factor =K= of 0.5 to begin with; half of the value of the wealth is
-   available in credit.  Adjusting =K= increases/reduces the liquid credit supply.
+   The simplest implementation of value-stability is to directly control the credit supply, and thus
+   indirectly control the credit flows (liquid credit availability, monetary velocity and relative
+   pricing).
+
+   Lets establish a simple wealth-backed monetary system with a certain amount of wealth attached to
+   it, from which we extend credit at a factor =K= of 0.5 to begin with; half of the value of the
+   wealth is available in credit.  Adjusting =K= increases/reduces the liquid credit supply.
 
    The economy has a certain stock of Host resources available (eg. cpu, net, ...), and a certain
    pool of dApp owners wanting to buy various combinations of them.  The owners willing to pay more
@@ -671,11 +677,17 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
    satisfied first, lesser later or not at all. In Holo, tranches of similar Hosts round-robin
    requests from clients of the dApps they host.
 
+   Once approach dApp owners can use to stay within budget is to adjust their preferred pricing;
+   lower pricing tiers access lower performing and/or higher utilization tranches of Hosts. This
+   results in lower receipt costs for the dApp owner, but also for lower aggregate average prices
+   for the resources -- lowering the median basket prices, and hence reducing "deflation".
+
 *** Host/dApp Pricing
 
     In the Holo Host environments, Hosts are pooled in tranches of like resource capacity (eg. cpu:
     type, count, ...), quality (eg. service: availability, longevity, ...), and price
     (eg. autopilot/manual pricing: lolo, lo, median, hi, hihi).  A multi-dimensional table of Host
+<<<<<<< HEAD
     tranches is maintained; each Host inserts itself into the correct table.
 
     - TODO: How do the DHT peers confirm that a Host isn't lying about its internal computational
@@ -683,6 +695,10 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
       couldn't independently verify these claims.  There will be great incentive to inflate claims,
       to draw and serve higher-priced requests...)
 
+=======
+    tranches is maintained; each Host inserts itself into the correct table.[fn:1]
+   
+>>>>>>> master
     A dApp owner also selects the resource requirements (eg. cpu: avx-128+, 4+ cores, ...) service
     level and pricing (eg. median).
 
@@ -694,25 +710,13 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     (or, perhaps throttled and served round-robin, to avoid complete starvation of the lower priced
     dApp groups). Of course, these tranches of Hosts are also limited (via a set Union) to those
     Hosts in each tranche that *also* host a given target dApp, and requests for a dApp are only
-    sent to those hosts who can service it.
-
-    - TODO: Each TCP/IP HTTP socket, representing 1 or more HTTP requests or a WebSocket initiation,
-      is assigned a Host; does Holo terminate the connection and relay I/O to/from the Host? It
-      should pre-establish a pool of sockets to candidate Hosts, ready to be distributed to incoming
-      requests, thus eliminating the delay of the 3-way handshake, and pre-eliminating
-      dead/unreachable Hosts.) This requires a persistent proxy a.la. Cloudflare. Much more simply,
-      perhaps, we could build [[https://insights.sei.cmu.edu/sei_blog/2017/02/six-best-practices-for-securing-a-robust-domain-name-system-dns-infrastructure.html][DNS servers]] that advertise multiple A records from an appropriate
-      tranche of candidate servers, in round-robin fashion, and let the end-user sort out servers
-      that disappear (until the DNS server figures out they're dead and stops serving their IP
-      address).  However, intervening caching DNS servers (eg. at large ISPs) could conduit large
-      numbers of request (ie. from the entire ISP!) to those few Host A-records for the
-      time-to-live of the cached DNS query.
+    sent to those hosts who can service it.[fn:2]
 
 *** Host/dApp Pricing Automation Approaches
 
     How does the system compute the actual price that "median" Hosts get paid?  How does it evolve
     over time?  1/2 of requests should go to median, lo, lolo Hosts, and 1/2 should go to median,
-    hi, hihi Hosts.  A PID loop could move the "Median" Host price to make this true, perhaps.
+    hi, hihi Hosts.  A PID loop could move the "median" Host price to make this true, perhaps.
     Hosts should set a minimum average price they'll earn, dApps a maximum average price they're
     willing to pay, and their requests are throttled to only the Host tranches which satisfy these
     limits.
@@ -734,9 +738,12 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
 *** Simple Host/dApp Pricing Model
 
     For the purposes of this simple test, we'll assume that the Host will simply spend all the
-    credit the dApp has available serving its requests (we won't simulate the dApps).  So, lets
-    generate a sequence of request service receipts from the Host to dApp owners, tuned to the
-    credit available to the dApp.
+    credit the dApp has available serving its requests (we won't simulate the dApps).  This would be
+    roughly equivalent to the effect of a dApp auto-pricing model where the maximum Hosting
+    performance available within the monthly credit budget is automatically selected.
+
+    So, lets generate a sequence of request service receipts from the Host to dApp owners, tuned to
+    the credit available to the dApp.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
@@ -755,7 +762,7 @@ class credit_static( object ):
         return sum( prices[k] * basket[k] for k in basket )
 
 # Adjust this so that our process value 'basket_value' achieves setpoint 'basket_target'
-# Use the global basket, prices defined above
+# Use the global basket, prices defined above.
 credit                  = credit_static( K=0.5, basket=basket, prices=prices )
 
 #print( "Global basket: %r, prices: %r" % ( basket, prices ))
@@ -774,13 +781,27 @@ reqs_min                = 1/10                  #   but at least this much of mi
 class dApp( object ):
     def __init__( self, duration=duration_month ): # 1 mo., in seconds
         """Select a random basket of computational requirements, some multiple of the minimal dApp
-        represented by the Holo Fuel basket (min. 10% of basket), for the specified duration."""
+        represented by the Holo Fuel basket (min. 10% of basket, mean 2 x basket), for the specified
+        duration.
+
+        The self.wealth is computed to supply a credit line sufficient to fund exactly 1 month of
+        dApp Hosting. This is a *simplistic* simulation of credit, but adequate to observe the
+        reaction of dApp owners and Hosts to adjusting credit lines.  In the real Holo system, a
+        much more complex system of establishing Host/dApp "wealth" and subsequent credit lines, and
+        dynamically adjusting automatic Host and dApp pricing will be employed.  The net effect will
+        be similar, but the reactions will take longer to emerge than this simulation's effects.
+
+        """
         self.duration   = duration
         self.requires   = { k: rnd_std_dst( sigma=reqs_sigma, mean=reqs_mean, minimum=reqs_min ) \
                                  ,* credit.basket[k] * duration / duration_month
                              for k in credit.basket }
-        # Finally, compute the wealth required to fund this at current credit factor K
-        self.wealth      = credit.value( basket=self.requires ) / credit.K
+        # Finally, compute the wealth required to fund this at current credit factor K; work back
+        # from the desired credit budget, to the amount of wealth that would produce that at "K".
+        # Of course wealth is a "stock", a budget funds a "flow", and we're conflating here. But,
+        # this could represent a model where the next round of Hosting's estimated cost is budgetted
+        # such that we always have at least one month of available credit to sustain it.
+        self.wealth     = credit.value( basket=self.requires ) / credit.K
 
     def __repr__( self ):
         return "<dApp using %8.2f Holo Fuel / %5.2f mo.: %s" % (
@@ -805,8 +826,8 @@ class Host( object ):
         """Generate receipt for dt seconds worth of hosting our dApp.  Hosting costs more/less as prices
         fluctuate, and dApp owners can spend more/less depending on how much credit they have
         available.  This spending reduction could be acheived, for example, by selecting a lower
-        pricing teir (thus worse performance)."""
-
+        pricing teir (thus worse performance).
+        """
         avail           = self.dApp.available( dt=dt )                # Credit available for this period
         used            = self.dApp.used( dt=dt, mean=used_mean, sigma=used_sigma ) # Hhosting resources used
         value           = credit.value( basket=used )                 # total value of dApp Hosting resources used
@@ -836,7 +857,7 @@ class credit_sine( credit_static ):
         super( credit_sine, self ).__init__( **kwds )
 
     def advance( self ):
-        self.sine_theta+= self.sine_step
+        self.sine_theta += self.sine_step
 
     def reset( self ):
         """Restore credit system initial conditions."""
@@ -862,14 +883,17 @@ class credit_sine_prices( credit_sine ):
         return { k: self.prices_base[k] * self.scale() for k in self.prices_base }
     @prices.setter
     def prices( self, value ):
-        self.prices_base     = prices
+        self.prices_base = prices
 
 # Create receipts with a credit.K or .prices fluctuating +/- .5%,  1 cycle per 6 hours
-#credit.advance          = lambda: None # if using credit_static...
-#credit.sine_amp         = 0
-credit                   = credit_sine_prices( K=0.5, amp=.5/100,
-                                 step=2 * math.pi / hosts_count / 6,
-                                 prices=prices, basket=basket ) # Start w/ the global basket
+#credit.advance         = lambda: None # if using credit_static...
+#credit.sine_amp        = 0
+credit                  = credit_sine_prices(
+                              K = 0.5,
+                            amp = .5/100,
+                           step = 2 * math.pi / hosts_count / 6,
+                         prices = prices,
+                         basket = basket ) # Start w/ the global basket
 receipts                = []
 for _ in range( hours_count ):
     for h in hosts:
@@ -902,23 +926,22 @@ predict_value           = credit.value( prices=predict )
   [ "Predict Basket", "%5.2f" % predict_value ],
   [ "Error" , "%+5.3f%%" % (( predict_value - actual_value ) * 100 / actual_value ) ],
 ]
-
     #+END_SRC
 
     #+RESULTS:
     :RESULTS:
     | 24hr. x 3600 Hosts Cost |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 20193.484711            | 5941.484138 | 120.131215 | 238.439052 | 59.889878 | 237.568428 |
+    | 24886.852213            | 5928.722386 | 116.958811 | 237.134527 | 58.995707 | 237.567847 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9869661    |             |            |            |           |            |
-    | Predicted               |        1.77 |      35.77 |       5.76 |     46.80 |       4.88 |
-    | Actual                  |        1.80 |      35.86 |       5.52 |     46.27 |       4.58 |
-    | Error                   |     -1.627% |    -0.272% |    +4.432% |   +1.136% |    +6.557% |
+    | Score(R^2) 0.9874947    |             |            |            |           |            |
+    | Predicted               |        2.49 |      42.18 |       5.74 |     42.77 |       5.27 |
+    | Actual                  |        2.54 |      42.19 |       5.34 |     41.98 |       4.90 |
+    | Error                   |     -1.712% |    -0.031% |    +7.484% |   +1.879% |    +7.548% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |       84.67 |            |            |           |            |
-    | Predict Basket          |       84.56 |            |            |           |            |
-    | Error                   |     -0.125% |            |            |           |            |
+    | Actual  Basket          |      105.27 |            |            |           |            |
+    | Predict Basket          |      105.15 |            |            |           |            |
+    | Error                   |     -0.119% |            |            |           |            |
     :END:
 
     #+LATEX: }
@@ -962,7 +985,8 @@ plt.show()
 
 *** Simple Credit Feedback Control
 
-    Finally, we have almost everything required to actually control the currency, using a simple PID controller.
+    Finally, we have almost everything required to actually control the currency, using a simple PID
+    controller.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :exports both :results value raw drawer
@@ -970,8 +994,6 @@ plt.show()
 import time
 import sys
 import math
-if not hasattr( math, 'nan' ):
-    math.nan            = float( 'nan' )
 
 timer                   = time.clock if sys.platform == 'win32' else time.time
 
@@ -979,11 +1001,11 @@ Kpid_t                  = collections.namedtuple( 'Kpid_t', ['Kp', 'Ki', 'Kd'] )
 Lout_t                  = collections.namedtuple( 'Lout_t', ['lo', 'hi'] )
 
 class controller( object ):
-    """Simple PID loop with Integral anti-windup, bumpless transfer, and setpoint change damping."""
+    """Simple PID loop with Integral anti-windup, bumpless transfer."""
     def __init__( self, Kpid, setpoint=None, process=None, output=None,
-                  Lout=( math.nan, math.nan ), now=None ):
-        self.Kpid       = Kpid( 1, 1, 1 ) if Kpid is None else Kpid_t( *Kpid )
-        self.Lout       = Lout_t( math.nan, math.nan ) if Lout is None else Lout_t( *Lout )
+                  Lout=( None, None ), now=None ):
+        self.Kpid       = uKpid( 1, 1, 1 ) if Kpid is None else Kpid_t( *Kpid )
+        self.Lout       = Lout_t( None, None ) if Lout is None else Lout_t( *Lout )
         self.setpoint   = setpoint or 0
         self.process    = process or 0
         self.output     = output or 0
@@ -991,7 +1013,9 @@ class controller( object ):
 
     def bumpless( self, setpoint=None, process=None, output=None, now=None ):
         """Bumpless control transfer; compute I required to maintain steady-state output,
-        and D such that a subsequent idential setpoint/process won't produce a Differential."""
+        and P such that a subsequent loop with idential setpoint/process won't produce a
+        Differential output.
+        """
         if setpoint is not None or self.setpoint is None:
             self.setpoint = setpoint or 0
         if process is not None or self.process is None:
@@ -1007,7 +1031,10 @@ class controller( object ):
 
     def loop( self, setpoint=None, process=None, now=None ):
         """Any change in setpoint? If our error (P - self.P) is increasing in a direction, and the
-        setpoint moves in that direction, cancel that amount of the rate of change."""
+        setpoint moves in that direction, cancel that amount of the rate of change.  Quench Integral
+        wind-up, if the output is saturated in either direction.  Finally clip the output drive
+        to saturation limits.
+        """
         dS              = 0
         if setpoint is not None:
             dS          = setpoint - self.setpoint
@@ -1032,8 +1059,10 @@ class controller( object ):
 
     @property
     def drive( self ):
-        """Limit raw self.output by any limits established in self.Lout"""
-        return clamp( self.output, self.Lout )
+        """Limit drive by clamping raw self.output to any limits established in self.Lout"""
+        if self.Lout.lo is None and self.Lout.hi is None:
+            return self.output
+        return np.clip( self.output, a_min=self.Lout.lo, a_max=self.Lout.hi )
 
     def __repr__( self ):
        return "<%r: %+8.6f %s %+8.6f --> %+8.6f (%+8.6f) P: %+8.6f * %+8.6f, I: %+8.6f * %+8.6f, D: %+8.6f * %+8.6f>" % (
@@ -1043,7 +1072,7 @@ class controller( object ):
            self.P, self.Kpid.Kp, self.I, self.Kpid.Ki, self.D, self.Kpid.Kd )
 
 def near( a, b, significance = 1.0e-4 ):
-    """ Returns True iff the difference between the values is within the factor 'significance' of
+    """Returns True iff the difference between the values is within the factor 'significance' of
     one of the original values.  Default is to within 4 decimal places. """
     return abs( a - b ) <= significance * max( abs( a ), abs( b ))
 
@@ -1074,11 +1103,22 @@ assert near( control.loop( 1.0, 1.0, now =11. ),  -0.4100 )
 
     #+LATEX: }
 
-
     Lets implement a simple credit system that adjust K via the PID loop to move the price of the
     credit basket towards our target value.  We'll produce a stream of Hosting receipts, based on
+<<<<<<< HEAD
     the current basket price and available credit.  Then, we'll compute the
+=======
+    the current underlying "median" basket price, with actual pricing modulated by available credit.
+    Then, we'll recover this pricing from the steam of Hosting receipts, compute the current Credit
+    Factor "K", and issue the next Hosting receipts with respect to the (newly altered) Credit Limit
+    computed from the dApp owner's wealth and "K".
+>>>>>>> master
 
+    This will simulate the feedback effect on pricing of increasing and decreasing credit
+    availability.  It assumes that there is a reasonably swift pricing response to credit limit
+    changes.  If the credit lines are broadly enough distributed in the economy (every Host and dApp
+    Owner has one), and many Hosts and dApp Owners use automation that responds to available credit
+    for pricing decisions, this assumption should be satisfied.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/receipts-regress-hourly-PID.png :exports both
@@ -1087,12 +1127,15 @@ import json
 import traceback
 import random
 
+# Make random changes to the pricing of individual computational resources, to simulate
+# the independent movement of commodity prices.
 adva_mean               = 1.0                   # Parity
 adva_sigma              = 1/100                 #  +/- 2% x standard distribution
 adva_min                = 98/100                # Trending downward (ie. Moore's law)
 adva_max                =102/100                # b/c 102% doesn't fully recover from 98%
 
 class credit_sine_prices_pid_K( credit_sine_prices ):
+<<<<<<< HEAD
     """Adjusts credit.K via PID, in response to prices varying according to a sine wave."""
 
     '''
@@ -1125,7 +1168,7 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         self.inflation  = self.price_curr / self.price_target
         self.inflation_trend = [(self.now, self.inflation)]
         # Bumpless start at setpoint 1.0, present inflation, and output of current K
-        # TODO: compute Kpid fr. desired correction factors vs. avg target dt
+        # TODO: compute Kpid fr. desired correction factors vs. avg target dt.
         self.K_control  = controller(
                            Kpid = Kpid or ( .1, .1, .001 ),
                        setpoint = 1.0,                  # Target is no {in,de}flation!
@@ -1151,7 +1194,10 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
                             now = now )
 
     def price_feedback( self, price, now, bumpless=False ):
-        """Supply a computed basket price at time 'now', and compute K via PID."""
+        """Supply a computed basket price at time 'now', and compute K via PID. If we are
+        assuming control (eg. after a period of inactivity), reset PID control to bumplessly
+        proceed from present state; otherwise, compute K from last time quanta's computed state.
+        """
         self.now        = now
         self.price_curr = price
         self.price_curr_trend += [(self.now, self.price_curr)]
@@ -1551,6 +1597,7 @@ for t in range( 1000 ):
 
      Sometimes this may be impossible.  For example, if we desire net redemption of Holo Fuel, but
      this requires a precipitous increase in our USD$ Sell price vs. our Buy price, each net unit
+     sold will cost us USD$ reserves.
 
 **** Limits on the relative and absolute buy/sell amounts
 
