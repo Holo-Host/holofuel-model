@@ -222,6 +222,7 @@ our decisions both internally, and where appropriate, externally.
 
    #+BEGIN_SRC ditaa :file images/holofuel-overview.png :cmdline -r -S -o
 
+<<<<<<< HEAD
     +----------------------------------------------+
     |      |"K"                                    |
     |      v                                       |
@@ -241,6 +242,27 @@ our decisions both internally, and where appropriate, externally.
        |K*Wealth|-+
        |==Credit| |
        +--------+ |
+=======
+           +---------------------------------------+
+           | "K"                                   |
+           v                                       |
+       +--------+               +--------+         |
+       |Host    |               |        |         |
+       |K*Wealth|-+  Receipts   | PID    |  "K"    |
+       |==Credit| |------------>|        |---------+
+       +--------+ |     |       +--------+  Credit |
+         |==Credit|     |                   Factor |
+         +--------+     |                          |
+               ^        |                          |
+           Holo|        |                          |
+           Fuel|        |                          |
+               |        |                          |
+       +--------+       |                          |
+       |dApp    |<------+                          |
+       |K*Wealth|-+                                |
+       |==Credit| |<-------------------------------+
+       +--------+ | "K"
+>>>>>>> master
          |==Credit|
          +--------+
 
