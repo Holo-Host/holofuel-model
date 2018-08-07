@@ -407,18 +407,11 @@ weight                  = {
    as Distributed Oracles), or trust a separate module to do so. In Holo Fuel, we host the sale of
    Holo Host services to dApp owners, so we know the historical prices.
 
-<<<<<<< HEAD
-   When a history of Holo Hosting service prices is available, Linear Regression can be used to
-   discover the average fixed (Holo Hosting premium) and variable (CPU, ...) component costs
-   included in the prices, and therefore the current commodity basket price.
-
-=======
    When a history of Holo Hosting service prices is available, Multiple Linear Regression (not
    Multi-variate!) can be used to discover the average fixed (Holo Hosting premium) and variable
    (CPU, ...) component costs included in the prices, and therefore the current commodity basket
    price.
 
->>>>>>> master
 *** Recovering Commodity Basket Costs
 
     To illustrate price recovery, lets begin with simulated prices of a basket of commodities.  A
@@ -687,18 +680,8 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     In the Holo Host environments, Hosts are pooled in tranches of like resource capacity (eg. cpu:
     type, count, ...), quality (eg. service: availability, longevity, ...), and price
     (eg. autopilot/manual pricing: lolo, lo, median, hi, hihi).  A multi-dimensional table of Host
-<<<<<<< HEAD
-    tranches is maintained; each Host inserts itself into the correct table.
-
-    - TODO: How do the DHT peers confirm that a Host isn't lying about its internal computational
-      resources?  A dApp could check, and issue a warrant if the Host is lying, but a DHT peer
-      couldn't independently verify these claims.  There will be great incentive to inflate claims,
-      to draw and serve higher-priced requests...)
-
-=======
     tranches is maintained; each Host inserts itself into the correct table.[fn:1]
 
->>>>>>> master
     A dApp owner also selects the resource requirements (eg. cpu: avx-128+, 4+ cores, ...) service
     level and pricing (eg. median).
 
@@ -1105,14 +1088,10 @@ assert near( control.loop( 1.0, 1.0, now =11. ),  -0.4100 )
 
     Lets implement a simple credit system that adjust K via the PID loop to move the price of the
     credit basket towards our target value.  We'll produce a stream of Hosting receipts, based on
-<<<<<<< HEAD
-    the current basket price and available credit.  Then, we'll compute the
-=======
     the current underlying "median" basket price, with actual pricing modulated by available credit.
     Then, we'll recover this pricing from the steam of Hosting receipts, compute the current Credit
     Factor "K", and issue the next Hosting receipts with respect to the (newly altered) Credit Limit
     computed from the dApp owner's wealth and "K".
->>>>>>> master
 
     This will simulate the feedback effect on pricing of increasing and decreasing credit
     availability.  It assumes that there is a reasonably swift pricing response to credit limit
@@ -1135,25 +1114,7 @@ adva_min                = 98/100                # Trending downward (ie. Moore's
 adva_max                =102/100                # b/c 102% doesn't fully recover from 98%
 
 class credit_sine_prices_pid_K( credit_sine_prices ):
-<<<<<<< HEAD
-    """Adjusts credit.K via PID, in response to prices varying according to a sine wave."""
-
-    '''
-    @property
-    def inflation( self ):
-        return self._inflation
-    @inflation.setter
-    def inflation( self, value ):
-        print( "Changing inflation from {!r} to {!r}".format(
-               self._inflation if hasattr( self, '_inflation' ) else None, value ))
-        if type( value ) not in (int,float):
-            traceback.print_stack( file=sys.stdout )
-        self._inflation = value
-    '''
-
-=======
     """Adjusts credit.K via PID, in response to prices varying randomly, and to a sine wave."""
->>>>>>> master
     def __init__( self, Kpid=None, price_target=None, price_curr=None, now=None, **kwds ):
         """A current price_target (default: 100.0 ) and price_feedback (default: price_target)
         is used to initialize a PID loop.
@@ -1242,23 +1203,6 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         """
         super( credit_sine_prices_pid_K, self ).advance()
         if int( getattr( self, 'adv_h', 0 )) != int( self.now ):
-<<<<<<< HEAD
-            self.adv_h = int( self.now )
-            k          = random.choice( list( prices.keys() ))
-            adj        = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
-                                     minimum=adva_min, maximum=adva_max )
-            #print( "At {:02d}:{:02d}: Adj. {:5} x {:6.2f}% from {:9.5f} to {:9.5f}".format(
-            #           int( self.now ), int( self.now * 60 ) % 60, k, adj * 100,
-            #           self.prices_base[k], self.prices_base[k] * adj ))
-            self.prices_base[k] *= adj
-
-credit                  = credit_sine_prices_pid_K(
-                                 K=0.5, amp=.5/100,
-                                 step=2 * math.pi / hosts_count / 6,
-                                 prices=prices, basket=basket, # Start w/ the global basket
-                                 price_target=basket_target,
-                                 price_curr=credit.value() ) # Est. initial price => inflation
-=======
             self.adv_h  = int( self.now )
             k           = random.choice( list( prices.keys() ))
             adj         = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
@@ -1269,7 +1213,6 @@ credit                  = credit_sine_prices_pid_K(
 # are globals, created above, randomly starting at some offset from neutral inflation.  We are varying
 # the amount of credit available, essentially forcing dApp owners to opt for lower or higher tranches
 # of service to stay within their available credit.
->>>>>>> master
 
 credit                  = credit_sine_prices_pid_K(
                               K = 0.5,
@@ -1572,11 +1515,7 @@ for t in range( 1000 ):
 **** The relative exchange activity level between the various exchanges
 
      Increasing inflow through one Exchange, while increasing outflow through other Exchange(s)
-<<<<<<< HEAD
-     indicates a pricing fluctuation in that Exchange currency.
-=======
      indicates an external value fluctuation in that Exchange currency vs. others.
->>>>>>> master
 
      The premium of the Exchange rate vs. the Book Value should rise/fall, until net inflow/outflow
      is roughly equivalent through all Exchanges, taking into account their overall relative
