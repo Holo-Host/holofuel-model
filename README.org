@@ -245,11 +245,11 @@ for k in basket:
     :RESULTS:
     | Commodity | Price | Per  | Per |
     |-----------+-------+------+-----|
-    | holo      |  2.11 | Host | mo. |
-    | net       | 27.18 | TB   | mo. |
-    | ram       |  5.57 | GB   | mo. |
-    | data      | 40.38 | TB   | mo. |
-    | cpu       |  4.41 | Core | mo. |
+    | holo      |  2.54 | Host | mo. |
+    | net       | 42.19 | TB   | mo. |
+    | ram       |  5.34 | GB   | mo. |
+    | data      | 41.98 | TB   | mo. |
+    | cpu       |  4.90 | Core | mo. |
     :END:
 
     #+LATEX: }
@@ -271,7 +271,7 @@ basket_price            = sum( basket[k] * prices[k] for k in basket )
     :RESULTS:
     | Holo Fuel Basket Price |
     |------------------------|
-    | $86.41 / 100.00        |
+    | $105.27 / 100.00       |
     :END:
 
     #+LATEX: }
@@ -352,11 +352,11 @@ for _ in range( number ):
     :RESULTS:
     | Fuel |  calc/err | dApp Requirements                                                               |
     |------+-----------+---------------------------------------------------------------------------------|
-    | 3.80 | 3.27+0.53 | 1.0000 holo Host, 0.0188 net TB, 0.0399 ram GB, 0.0043 data TB, 0.0567 cpu Core |
-    | 2.68 | 3.21-0.53 | 1.0000 holo Host, 0.0190 net TB, 0.0440 ram GB, 0.0049 data TB, 0.0317 cpu Core |
-    | 3.30 | 3.80-0.50 | 1.0000 holo Host, 0.0233 net TB, 0.0845 ram GB, 0.0104 data TB, 0.0393 cpu Core |
-    | 4.66 | 4.20+0.46 | 1.0000 holo Host, 0.0441 net TB, 0.0347 ram GB, 0.0125 data TB, 0.0431 cpu Core |
-    | 3.04 | 3.10-0.06 | 1.0000 holo Host, 0.0000 net TB, 0.0552 ram GB, 0.0110 data TB, 0.0552 cpu Core |
+    | 3.75 | 4.34-0.59 | 1.0000 holo Host, 0.0219 net TB, 0.0343 ram GB, 0.0154 data TB, 0.0111 cpu Core |
+    | 3.55 | 4.19-0.64 | 1.0000 holo Host, 0.0211 net TB, 0.0278 ram GB, 0.0097 data TB, 0.0423 cpu Core |
+    | 3.98 | 4.24-0.26 | 1.0000 holo Host, 0.0172 net TB, 0.0200 ram GB, 0.0144 data TB, 0.0546 cpu Core |
+    | 3.58 | 3.69-0.11 | 1.0000 holo Host, 0.0067 net TB, 0.0413 ram GB, 0.0107 data TB, 0.0402 cpu Core |
+    | 5.36 | 4.65+0.71 | 1.0000 holo Host, 0.0178 net TB, 0.0537 ram GB, 0.0215 data TB, 0.0353 cpu Core |
     |  ... |           |                                                                                 |
     :END:
     #+LATEX: }
@@ -399,15 +399,15 @@ predict                 = { k: regression.predict( select[k] )[0] for k in baske
 
     #+RESULTS:
     :RESULTS:
-    | Score(R^2): | 0.5238242 |        |         |
+    | Score(R^2): | 0.5625595 |        |         |
     |-------------+-----------+--------+---------|
     | Commodity   | Predicted | Actual |   Error |
     |-------------+-----------+--------+---------|
-    | holo        |      2.11 |   2.11 | -0.139% |
-    | net         |     27.83 |  27.18 | +2.411% |
-    | ram         |      5.53 |   5.57 | -0.704% |
-    | data        |     39.74 |  40.38 | -1.582% |
-    | cpu         |      4.55 |   4.41 | +3.111% |
+    | holo        |      2.52 |   2.54 | -0.736% |
+    | net         |     41.76 |  42.19 | -1.018% |
+    | ram         |      5.34 |   5.34 | -0.049% |
+    | data        |     43.47 |  41.98 | +3.555% |
+    | cpu         |      5.10 |   4.90 | +4.039% |
     :END:
 
     #+LATEX: }
@@ -432,7 +432,7 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     :RESULTS:
     | Holo Fuel Price Recovered | vs. Actual |   Error |
     |---------------------------+------------+---------|
-    | $86.60 / 100.00           |      86.41 | +0.223% |
+    | $105.16 / 100.00          |     105.27 | -0.108% |
     :END:
 
     #+LATEX: }
@@ -627,7 +627,7 @@ class credit_sine( credit_static ):
         super( credit_sine, self ).__init__( **kwds )
 
     def advance( self ):
-        self.sine_theta+= self.sine_step
+        self.sine_theta += self.sine_step
 
     def reset( self ):
         """Restore credit system initial conditions."""
@@ -653,14 +653,17 @@ class credit_sine_prices( credit_sine ):
         return { k: self.prices_base[k] * self.scale() for k in self.prices_base }
     @prices.setter
     def prices( self, value ):
-        self.prices_base     = prices
+        self.prices_base = prices
 
 # Create receipts with a credit.K or .prices fluctuating +/- .5%,  1 cycle per 6 hours
-#credit.advance          = lambda: None # if using credit_static...
-#credit.sine_amp         = 0
-credit                   = credit_sine_prices( K=0.5, amp=.5/100,
-                                 step=2 * math.pi / hosts_count / 6,
-                                 prices=prices, basket=basket ) # Start w/ the global basket
+#credit.advance         = lambda: None # if using credit_static...
+#credit.sine_amp        = 0
+credit                  = credit_sine_prices(
+                              K = 0.5,
+                            amp = .5/100,
+                           step = 2 * math.pi / hosts_count / 6,
+                         prices = prices,
+                         basket = basket ) # Start w/ the global basket
 receipts                = []
 for _ in range( hours_count ):
     for h in hosts:
@@ -699,16 +702,16 @@ predict_value           = credit.value( prices=predict )
     :RESULTS:
     | 24hr. x 3600 Hosts Cost |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 20667.032563            | 5988.651699 | 120.620987 | 237.308410 | 59.391252 | 234.547756 |
+    | 24886.852213            | 5928.722386 | 116.958811 | 237.134527 | 58.995707 | 237.567847 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9872771    |             |            |            |           |            |
-    | Predicted               |        2.07 |      27.26 |       5.86 |     41.07 |       4.73 |
-    | Actual                  |        2.11 |      27.18 |       5.57 |     40.38 |       4.41 |
-    | Error                   |     -1.733% |    +0.300% |    +5.151% |   +1.711% |    +7.290% |
+    | Score(R^2) 0.9874947    |             |            |            |           |            |
+    | Predicted               |        2.49 |      42.18 |       5.74 |     42.77 |       5.27 |
+    | Actual                  |        2.54 |      42.19 |       5.34 |     41.98 |       4.90 |
+    | Error                   |     -1.712% |    -0.031% |    +7.484% |   +1.879% |    +7.548% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |       86.41 |            |            |           |            |
-    | Predict Basket          |       86.31 |            |            |           |            |
-    | Error                   |     -0.107% |            |            |           |            |
+    | Actual  Basket          |      105.27 |            |            |           |            |
+    | Predict Basket          |      105.15 |            |            |           |            |
+    | Error                   |     -0.119% |            |            |           |            |
     :END:
 
     #+LATEX: }
@@ -780,7 +783,7 @@ class controller( object ):
 
     def bumpless( self, setpoint=None, process=None, output=None, now=None ):
         """Bumpless control transfer; compute I required to maintain steady-state output,
-        and D such that a subsequent loop with idential setpoint/process won't produce a
+        and P such that a subsequent loop with idential setpoint/process won't produce a
         Differential output.
         """
         if setpoint is not None or self.setpoint is None:
@@ -826,7 +829,7 @@ class controller( object ):
 
     @property
     def drive( self ):
-        """Limit drive by clampin graw self.output to any limits established in self.Lout"""
+        """Limit drive by clamping raw self.output to any limits established in self.Lout"""
         if self.Lout.lo is None and self.Lout.hi is None:
             return self.output
         return np.clip( self.output, a_min=self.Lout.lo, a_max=self.Lout.hi )
