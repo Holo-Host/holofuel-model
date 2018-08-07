@@ -1108,9 +1108,13 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         self._inflation = value
     '''
 
+=======
+    """Adjusts credit.K via PID, in response to prices varying randomly, and to a sine wave."""
+>>>>>>> master
     def __init__( self, Kpid=None, price_target=None, price_curr=None, now=None, **kwds ):
         """A current price_target (default: 100.0 ) and price_feedback (default: price_target)
-        is used to initialize a PID loop."""
+        is used to initialize a PID loop.
+        """
         super( credit_sine_prices_pid_K, self ).__init__( **kwds )
         self.now        = now or 0 # hours?
         # Default: 100.0 Holo Fuel / basket, defined above
@@ -1155,7 +1159,8 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         self.inflation_trend += [(self.now, self.inflation)]
         if bumpless:
             self.bumpless( price_curr=self.price_curr, now=now )
-        self.K          = self.K_control.loop(
+        else:
+            self.K      = self.K_control.loop(
                         process = self.inflation,
                             now = self.now )
         self.K_trend   += [(self.now, self.K)]
@@ -1163,13 +1168,20 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         self.price_trend += [(self.now, self.value())]
 
     def receipt_feedback( self, receipts, now, bumpless=False ):
-        """Extract price_feedback from a sequence of receipts"""
+        """Extract price_feedback from a sequence of receipts via linear regression.  Assumes that the
+        'holo' component is a "baseline" (is assigned all static, non-varying base cost, not
+        attributable to varying usage of the other computational resources); it is always a simple
+        function of how much wall-clock time the Receipt represents, as a fraction of the 1 'holo'
+        Host-month included in the basket.  The remaining values represent how many units (eg. GB
+        'ram', TB 'storage', fraction of a 'cpu' Core's time consumed) of each computational
+        resource were used by the dApp during the period of the Receipt.
+        """
         items           = [ [ r[k] for k in credit.basket ] for c,r in receipts ]
         costs           = [ c                               for c,r in receipts ]
         try:
             regression.fit( items, costs )
-            select          = { k: [ int( k == k2 ) for k2 in self.basket ] for k in self.basket }
-            predict         = { k: regression.predict( select[k] )[0] for k in self.basket }
+            select      = { k: [ int( k == k2 ) for k2 in self.basket ] for k in self.basket }
+            predict     = { k: regression.predict( select[k] )[0] for k in self.basket }
             self.price_feedback( self.value( prices=predict ), now=now, bumpless=bumpless )
             self.feedback_trend += [(self.now, { k: self.basket[k] * predict[k]
                                                 for k in self.basket })]
@@ -1179,9 +1191,12 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
 
     def advance( self ):
         """About once per integral time period (eg. hour), randomly purturb the pricing of one
-        commodity in the basket.  We'll manipulate the underlying self.prices_base"""
+        commodity in the basket.  We'll manipulate the underlying self.prices_base (which is being
+        modulated systematically to produce the base commodity prices).  
+        """
         super( credit_sine_prices_pid_K, self ).advance()
         if int( getattr( self, 'adv_h', 0 )) != int( self.now ):
+<<<<<<< HEAD
             self.adv_h = int( self.now )
             k          = random.choice( list( prices.keys() ))
             adj        = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
@@ -1197,14 +1212,33 @@ credit                  = credit_sine_prices_pid_K(
                                  prices=prices, basket=basket, # Start w/ the global basket
                                  price_target=basket_target,
                                  price_curr=credit.value() ) # Est. initial price => inflation
+=======
+            self.adv_h  = int( self.now )
+            k           = random.choice( list( prices.keys() ))
+            adj         = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
+                                      minimum=adva_min, maximum=adva_max )
+            self.prices_base[k] *= adj
 
-#print( "credit.basket: %r, prices: %r" % ( credit.basket, credit.prices ))
+# Create the credit system targetting neutral {in,de}flation of 1.0. The underlying basket and prices
+# are globals, created above, randomly starting at some offset from neutral inflation.  We are varying
+# the amount of credit available, essentially forcing dApp owners to opt for lower or higher tranches
+# of service to stay within their available credit.
+>>>>>>> master
+
+credit                  = credit_sine_prices_pid_K( 
+                              K = 0.5,
+                            amp = .5/100,
+                           step = 2 * math.pi / hosts_count / 6,
+                         prices = prices,
+                         basket = basket,               # Start w/ the global prices, basket
+                   price_target = basket_target,
+                     price_curr = credit.value() )      # Est. initial price => inflation
 
 # Run a simulation out over a couple of days.  This will simulate a base Price of a Desired level of
 # service (say, a certain Tranche of Hosts w/ a certain level of performance), but will simulate a
-# withdrawal of credit from the system (eg. available to the dApp owner owners), which forces them
-# to elect a lower service level (at lower prices), or gain access to a higher level of service
-# (with greater available credit) and pay more.  We will also from time to time randomly adjust the
+# withdrawal of credit from the system (eg. available to the dApp owners), which forces them to
+# elect a lower service level (at lower prices), or gain access to a higher level of service (with
+# greater available credit) and pay more.  We will also from time to time randomly adjust the
 # pricing of one component of the basket relative to all others, to illustrate the effect of
 # changing the supply/demand of just one portion of the computational commodities underlying Holo
 # Fuel), and observe how the system responds.
@@ -1281,6 +1315,34 @@ plt.show()
 
     #+LATEX: }
 
+    - The scale of the PID loop Integral factor is such that it takes about 24 hours to adjust
+      credit lines, even for large Inflation swings. We do not want to adjust Host/Owner credit
+      lines abruptly.
+
+    - We are using linear regression over the last hour of Hosting receipt data to recover prices.
+      Each receipt represents some prior time period, so the PID loop is operating on pricing
+      approximations from data hours old, so P and D response is not likely to be very helpful.
+
+    - Linear regression can wildly miscalculate attribution, especially if thin data with outliers
+      is used.  This is another reason that the long-term Integral of error under the curve is more
+      desirable; it minimizes the effect of occasional dramatic miscalculations of basket pricing.
+
+*** Agent-Centric Distributed Calculation of "K"
+
+    No single agent, or group of colluding agents, must have influence over "K".
+
+    - The Holo Tranche dApp 
+      - Knows all Hosts within the Tranche (transfers Hosts moving from/to adjacent Tranches)
+      - Collects Hosting receipts from its Host, on behalf of the entire Tranche of similar Hosts.
+      - Computes Holo Fuel commodity prices and Basket price on a certain interval (eg. 5m.), over
+        a longer interval of Hosting receipt data (eg. 1hr.)[fn:3]
+
+    - The Holo dApp
+      - Knows all Tranches providing Holo Hosting (N-dimensional array of Tranches)
+      - Collects commodity and Basket price computations from each Holo Tranche (eventually consistent)
+      - Computes median 
+      
+
 * Holo Fuel Value Stabilization
 
   Price discovery gives us the tools we need to detect {in,de}flation as it occurs.  Control of
@@ -1334,12 +1396,12 @@ plt.show()
     accomplish this is to discourage creation of Holo Fuel (both by decreasing buying and creating
     Holo Fuel in the system, and to encourage the redemption of Holo Fuel), by increasing the
     exchange rate.  The inverse (lowering exchange rate) would result in more Holo Fuel creation
-    (and less redemption), reducing the Holo Fuel available, and thus reducing Holo Fuel deflation.
+    (and less redemption), increasing the Holo Fuel available, and thus reducing Holo Fuel deflation.
 
     The Reserve Accounts can respond very quickly, inducing Holo Hosts with Holo Fuel balances to
     quickly convert them out to other currencies when exchange rates rise.  Inversely, reducing
     rates would release waiting dApp owners to purchase more Holo Fuel for hosting their dApps,
-    deploying it into the economy to address deflation (increasing computational commodity prices,
+    deploying it into the economy to address deflation (the increase of computational commodity prices,
     as measured in Holo Fuel).
 
     A PD (Proportional Differential) control might be ideal for this.  This type of control responds
@@ -1352,8 +1414,6 @@ plt.show()
     current Book Value exchange rate (eg. the HOT ERC20 market), to arrive at the Reserve Account
     exchange rate.  When inflation/deflation disappears, then the Reserve Account will have the same
     exchange rate as the Book Value.
-
-
 
     Beginning with a set of reserves:
 
@@ -1425,12 +1485,14 @@ for t in range( 1000 ):
 
 *** Simple LIFO Exchange
 
-    Holo Fuel is an accounting mechanism, representing a pre-purchased amount of Hosting, within the
-    Holo system.  It is not a traditional currency, nor is it a commodity.  By ensuring
-    value-stability, one unit of Holo Fuel is guaranteed to purchase 1 basket of computational
-    resources within the system.  It is much more similar to an Apple iTunes card balance,
-    redeemable later for various goods and services at some expected value (eg. about USD$1 per
-    iTunes card unit).
+    Holo Fuel is an accounting mechanism, representing a pre-purchased amount of Hosting within the
+    Holo system.  It is not a traditional currency, nor is it a commodity. It is a pre-purchased
+    amount of value denominated in units of a basket containing defined amounts of the computational
+    resources comprising the service.  By ensuring value-stability, one unit of Holo Fuel is
+    guaranteed to purchase 1 basket of computational resources within the system.  It is similar to
+    an Apple iTunes card balance or airline points balance, redeemable later for various goods and
+    services at some expected value (eg. about USD$1 per iTunes card unit, USD$.015 per United
+    MileagePlus point).
 
     This means that, necessarily, the exchange rates between Holo Fuel and various external
     currencies must be dynamically controlled to maintain this invariant.  Failing to do so will
@@ -1439,7 +1501,7 @@ for t in range( 1000 ):
     the amount of Hosting required when used later), or C) cannot be sold by Hosting service owners,
     later, for a reasonably stable real value in some external currency?
 
-    Therefore, allowing arbitrary exchange in/out of Holo Fuel at some arbitrary historical exchange
+    Therefore, allowing uncontrolled exchange in/out of Holo Fuel at some arbitrary historical exchange
     rate (eg. the rate the last person bought in at) is probably not viable.  When real exchange
     rates drop (ie. due to currency values fluctuating), internal Holo Fuel holders would be
     encouraged to sell Holo Fuel for say USD$ at a premium vs. its actual current market value.
@@ -1452,12 +1514,23 @@ for t in range( 1000 ):
 *** Active Exchange Flow Balancing
 
     In order to detect and respond to both A) Exchange currency value fluctuations, and B) maintain
-    the desired level of inward/outward flow of Holo Fuel required to maintain value stability, we need to control:
+    the desired level of inward/outward flow of Holo Fuel required to maintain value stability, we
+    need to control the Price (premium vs. Book Value), Spread (differential between Buy/Sell
+    prices), Ratio (difference between Buy/creation and Sell/redemption), and Volume (total amount
+    of Buy/Sell activity).
+
+    To leave any of these uncontrolled, is to place our Reserves at grave risk of being looted, and
+    the Holo Fuel currency system at risk of losing its value stability due to uncontrolled
+    {in,de}flation.
 
 **** The relative exchange activity level between the various exchanges
 
      Increasing inflow through one Exchange, while increasing outflow through other Exchange(s)
+<<<<<<< HEAD
      indicates a pricing fluctuation in that Exchange currency.
+=======
+     indicates an external value fluctuation in that Exchange currency vs. others. 
+>>>>>>> master
 
      The premium of the Exchange rate vs. the Book Value should rise/fall, until net inflow/outflow
      is roughly equivalent through all Exchanges, taking into account their overall relative
@@ -1476,15 +1549,60 @@ for t in range( 1000 ):
      a certain target ratio of buying to selling (eg. 3 Holo Fuel bought for every 1 sold), leading
      to net increase/decrease in Holo Fuel supply.
 
-**** Limits on the absolute buy/sell amounts
+     Sometimes this may be impossible.  For example, if we desire net redemption of Holo Fuel, but
+     this requires a precipitous increase in our USD$ Sell price vs. our Buy price, each net unit
+
+**** Limits on the relative and absolute buy/sell amounts
 
      Even when equilibrium inflow between Exchanges is reached, and a target buy/sell ratio is
      reached, the absolute rates of purchase (creation) or redemption of Holo Fuel must be
      controlled.  We neither wish to empty our Reserve accounts, or allow a sudden inflow of massive
      amounts of Holo Fuel credit.
 
-     As the amount of transactions increases within Holo Fuel, the capacity for inflow/outflow
-     increases.  The size and number of buy/sell transactions allowed on each exchange per unit time
-     will be limited to a certain percentage of the Monetary Velocity of the Holo Fuel system.
+     Instead of further adjusting Buy/Sell differentials, we can limit Buy/Sell ratios to a be
+     above/below a certain fraction, eg. 3 units bought for every unit sold.  This will also serve
+     to limit large net inflows/redemptions during abrupt external currency price events, and our
+     slow-moving base premium/discount PID loops reach an equilibrium price.
 
-*** Incomplete...
+     As the amount of transactions increases within Holo Fuel, the capacity for absorbing large
+     inflow/outflow increases.  The size and number of buy/sell transactions allowed on each
+     exchange per unit time will be limited to a certain percentage of the Monetary Velocity of the
+     Holo Fuel system.
+
+
+* Footnotes
+
+[fn:1] How do the DHT peers confirm that a Host isn't lying about its internal computational
+resources?  A dApp could check, and issue a warrant if the Host is lying, but a DHT peer couldn't
+independently verify these claims.  There will be great incentive to inflate claims, to draw and
+serve higher-priced requests.  Host performance ranking is defined by aggregate perceived
+performance of the Host, as measured by the Clients of the dApp.  Holo should sort clients into
+buckets by locale before assigning the appropriate Hosting tranches for its requests (ie. Hosts
+nearby the Client).  Measurements (success and elapsed time) of requests requiring significant
+amounts of single resources (eg. access to lots of locally stored data, or lots of CPU) should be
+measured, and stored as Hosting Performance records in the Client's DHT.  The Hosting Receipt's logs
+contain references to relevant Client Hosting Performance records.  The dApp owner can then rank
+each Host by Client-perceived performance for each "telltale" request.  A Host that is consistently
+below/above median performance can be Warranted for re-positioning to a different Host tranche.
+This could, in fact, be the primary method for moving hosts into the correct performance Tranches.
+New Hosts always get put into the lowest performance Tranche first, and are moved "up" when positive
+"Wrong Tranch" Warrants outweigh negative ones, over some period of time.
+
+[fn:2] Each TCP/IP HTTP socket, representing 1 or more HTTP requests or a WebSocket initiation, is
+assigned a Host; does Holo terminate the connection and relay I/O to/from the Host? It should
+pre-establish a pool of sockets to candidate Hosts, ready to be distributed to incoming requests,
+thus eliminating the delay of the 3-way handshake, and pre-eliminating dead/unreachable Hosts.) This
+requires a persistent proxy a.la. Cloudflare. Much more simply, perhaps, we could build [[https://insights.sei.cmu.edu/sei_blog/2017/02/six-best-practices-for-securing-a-robust-domain-name-system-dns-infrastructure.html][DNS servers]]
+that advertise multiple A records from an appropriate tranche of candidate servers, in round-robin
+fashion, and let the end-user sort out servers that disappear (until the DNS server figures out
+they're dead and stops serving their IP address).  However, intervening caching DNS servers (eg. at
+large ISPs) could conduit large numbers of request (ie. from the entire ISP!) to those few Host
+A-records for the time-to-live of the cached DNS query.
+
+[fn:3] The time frames are short enough that the prices should be considered "constant" during the
+period; ie. won't contain Hosting reports priced under very different economic climates.  This means
+that a simple multiple linear regression over the data, producing a linear model of the price (the
+dependent variable) as a function of the commodities (explanatory variables) is sufficient.  From
+that model, we can predict the individual commodity prices, and then multiply by the amounts of each
+commodity in the Holo Fuel Basket to arrive at the Basket price.
+
