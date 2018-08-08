@@ -3,15 +3,20 @@
 #+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
 #+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
 
+\begin{abstract}
+
 This paper covers the detailed design of the Holo Fuel system. It explains the purpose of creating a
 Holo Fuel system, key design principles, components and key parameters, and discusses our system simulations.
 It is intended both as a design specification for implementation, plus a communications document to explain
 our decisions both internally, and where appropriate, externally.
 
+\end{abstract}
+
 * Why Do We Need Our Own Currency?
 
   Holo is an open network designed to match those who want Holochain applications hosted with those who can host.
   Agents in the network will be one of three types of roles: consumers, producers, and infrastructure providers.
+
     - Consumers: end users of Holochain services e.g. the users of a decentralised Twitter app; app providers who
       pay for and consume hosting
     - Producers: Holo hosts; app providers providing services to end users; developers who provide tools and services
@@ -30,6 +35,7 @@ our decisions both internally, and where appropriate, externally.
   required us to meet several challenging criteria. These criteria demanded an efficiency far beyond current
   cryptocurrency at a micro-scale that traditional transaction fees prohibit, and a radical new currency design
   pattern. These were the design constraints for Holo’s currency system:
+
     - Must cost less in computing cycles and in fees than the original computing and funds being counted.
     - Must support millions of transactions per second and account for service provision in batches, surpassing
       financial exchange backbones like the Visa network, which has a maximum estimated capacity of 56,000
@@ -42,80 +48,84 @@ our decisions both internally, and where appropriate, externally.
   Our solution to the first two design criteria is the Holochain technology. Our solution to the third criteria
   is the Holo Fuel mutual credit system detailed in this paper.
 
-***Holo Fuel Problem Statement
+** Holo Fuel Problem Statement
 
-    Before discussing our solution further, it’s worth explaining why our design criteria is that Fuel “must
-    maintain a stable and accurate representation of the productive capacity of the network without centralisation”.
+   Before discussing our solution further, it’s worth explaining why our design criteria is that Fuel “must
+   maintain a stable and accurate representation of the productive capacity of the network without centralisation”.
 
-    In almost all distributed ledger technology-based services today, users have to buy the network’s coin or token
-    to pay for the service. These coins and tokens represent a claim on a part of the network’s future productive
-    capacity. Today, there are two main approaches to defining the value of the claim, fixed supply or stable coin:
+   In almost all distributed ledger technology-based services today, users have to buy the network’s coin or token
+   to pay for the service. These coins and tokens represent a claim on a part of the network’s future productive
+   capacity. Today, there are two main approaches to defining the value of the claim, fixed supply or stable coin:
 
-    Most tokens today are fixed supply. In this design, price appreciation leads to an unsustainable burden on
-    producers because they must fulfil commitments at the marginal price. Take a simplistic example of a shoe
-    manufacturer launching shoe tokens. They issue 1,000,000 tokens at $10 per token, essentially collecting $10 million
-    in pre-sales. If token market prices go up 10x they now have to fulfil $100 million of orders. To solve this most
-    utility token projects expect to sell those tokens again to generate cash flow. This just compounds the problem
-    since those tokens will get redeemed again, possibly at a higher price.
+   Most tokens today are fixed supply. In this design, price appreciation leads to an unsustainable burden on
+   producers because they must fulfil commitments at the marginal price. Take a simplistic example of a shoe
+   manufacturer launching shoe tokens. They issue 1,000,000 tokens at $10 per token, essentially collecting $10 million
+   in pre-sales. If token market prices go up 10x they now have to fulfil $100 million of orders. To solve this most
+   utility token projects expect to sell those tokens again to generate cash flow. This just compounds the problem
+   since those tokens will get redeemed again, possibly at a higher price.
 
-    The other, rarer, currency pattern today is the stable coin, where each coin or token is worth a fixed amount to
-    a currency or other value measure (usually gold or the USD). The problem with a stable coin is it requires
-    centralisation - gold, USD, or whatever the currency is pegged against needs to be stockpiled. One only needs
-    to look at the December/January drama surrounding Tether to understand the risks.
+   The other, rarer, currency pattern today is the stable coin, where each coin or token is worth a fixed amount to
+   a currency or other value measure (usually gold or the USD). The problem with a stable coin is it requires
+   centralisation - gold, USD, or whatever the currency is pegged against needs to be stockpiled. One only needs
+   to look at the December/January drama surrounding Tether to understand the risks.
 
-    [Internal note: fixed supply value-stable coin i.e. 1 token = 1 shoe cannot work because if productive capacity expands
-    or contracts the currency breaks since the token supply can’t adjust with it]
+   [Internal note: fixed supply value-stable coin i.e. 1 token = 1 shoe cannot work because if productive capacity expands
+   or contracts the currency breaks since the token supply can’t adjust with it]
 
 * Holo Fuel Objective and High Level Design
 
-**A value-stable currency
-    The Holo Fuel mutual credit system solves the problem highlighted above by dynamically managing the circulating
-    currency supply to achieve a value-stable currency.
+  The Holo Fuel mutual credit system solves the problem highlighted above by dynamically managing the circulating
+  currency supply to achieve a value-stable currency.
 
-    We define “value-stable” to mean that 1 unit of Holo Fuel always buys the median “basket” of hosting services
-    available on the network.  Using the shoe example above, we aim to keep the value of 1 token = 1 pair of shoes.
-    The components of the median basket will change over time as new types of hosting products (e.g. GPUs) become
-    available and the hosting capacity on the network evolves with new hosts, CPU upgrades, etc. This is akin to
-    the shoe company continuing to honour the 1 token = 1 pair of shoes rule as they expand their range of shoes
-    (e.g. boots) and as craftsmanship evolves.
+** A value-stable currency
 
-    In this system Holo Fuel exchange rates with other currencies (e.g. USD, ETH) should reflect the value of the
-    work being done by the network. As developer adoption spreads and more valuable applications are built on the
-    Holochain, we expect Fuel exchange rates to increase. In the shoe company example, we would expect tokens to
-    be more valuable as the perceived value of their shoe increases (e.g. brand, build quality), but not as the
-    company develops additional production capacity to make more shoes.
+   We define “value-stable” to mean that 1 unit of Holo Fuel always buys the median “basket” of hosting services
+   available on the network.  Using the shoe example above, we aim to keep the value of 1 token = 1 pair of shoes.
+   The components of the median basket will change over time as new types of hosting products (e.g. GPUs) become
+   available and the hosting capacity on the network evolves with new hosts, CPU upgrades, etc. This is akin to
+   the shoe company continuing to honour the 1 token = 1 pair of shoes rule as they expand their range of shoes
+   (e.g. boots) and as craftsmanship evolves.
 
-    Critically, Holochain’s agent-centric nature allows us to manage all of this in a decentralised manner. Because
-    the network knows each agent’s productive capacity the network is able to extend them credit and dynamically
-    adjust it, allowing each user to create money backed by their productive capacity (i.e. backed by real wealth).
-    This eliminates the need for any type of fiat authority, whether government-imposed (such as a central bank) or
-    through consensus algorithms such as Proof-of-Work.
+   In this system Holo Fuel exchange rates with other currencies (e.g. USD, ETH) should reflect the value of the
+   work being done by the network. As developer adoption spreads and more valuable applications are built on the
+   Holochain, we expect Fuel exchange rates to increase. In the shoe company example, we would expect tokens to
+   be more valuable as the perceived value of their shoe increases (e.g. brand, build quality), but not as the
+   company develops additional production capacity to make more shoes.
 
-**The Holo Fuel System
-  [Diagram of Holo Fuel system showing the main components and money flows]
-  - End users
-      - Buying services from app providers with Holo
-      - Buying Holo from reserve accounts
-      - Buying Holo from exchanges
-  - App Providers
-      - Buy hosting from Hosts with Holo
-      - Buy Holo from reserve accounts
-      - Buy/Sell Holo from exchanges
-      - Issues new credit
-  - Developers
-      - Earn Holo from Developers
-      - Sell Holo on exchanges
-      - Issues new credit
-  - Hosts
-      - Sell Holo on reserve accounts
-      - Sell Holo on exchanges
-      - Issues new credit
-  - Reserves
+   Critically, Holochain’s agent-centric nature allows us to manage all of this in a decentralised manner. Because
+   the network knows each agent’s productive capacity the network is able to extend them credit and dynamically
+   adjust it, allowing each user to create money backed by their productive capacity (i.e. backed by real wealth).
+   This eliminates the need for any type of fiat authority, whether government-imposed (such as a central bank) or
+   through consensus algorithms such as Proof-of-Work.
+
+** The Holo Fuel System
+
+   [Diagram of Holo Fuel system showing the main components and money flows]
+
+   - End users
+       - Buying services from app providers with Holo
+       - Buying Holo from reserve accounts
+       - Buying Holo from exchanges
+   - App Providers
+       - Buy hosting from Hosts with Holo
+       - Buy Holo from reserve accounts
+       - Buy/Sell Holo from exchanges
+       - Issues new credit
+   - Developers
+       - Earn Holo from Developers
+       - Sell Holo on exchanges
+       - Issues new credit
+   - Hosts
+       - Sell Holo on reserve accounts
+       - Sell Holo on exchanges
+       - Issues new credit
+   - Reserves
 
     The diagram above shows the key components and money flows in the system. In this system the two primary
     components that influence the money supply are credit and reserves.
 
-***Credit Issuance
+*** Credit Issuance
+
     Every agent will be extended a credit limit, which is a function of their earnings history and consistency,
     past credit limit infractions, the type of earnings (hosts have greater credit limits) and a network-wide
     credit factor that is controlled by the network (see below). As host earnings potential changes over time
@@ -136,7 +146,8 @@ our decisions both internally, and where appropriate, externally.
     network and users will likely have to undergo real-world registration processes, there will be real world
     checks and balances that limit the system worst abuses.
 
-***Reserves
+*** Reserves
+
     While credit limits will be the primary source of circulating money, some supply also comes from reserve
     accounts. The primary purpose of these reserve accounts is to ensure that hosts are able to ‘cash out’
     Holo Fuel into national or other cryptocurrencies as needed to pay for operating expenses.
@@ -168,7 +179,8 @@ our decisions both internally, and where appropriate, externally.
     While the Holo organisation will set up the first reserve accounts, anyone is allowed to set up a reserve
     account as long as they meet certain criteria designed to protect the integrity of the system.
 
-***HOT and the Holo Infrastructure Fund
+*** HOT and the Holo Infrastructure Fund
+
     The HOT tokens issued in our ICO represents a special case. This HOT will be convertible to Fuel at a rate
     of 1:1 once the network launches. However, since we will spend the 70% of ETH received and only saving 30%
     for initial capitalisation of the reserve accounts, 70% of HOT/Fuel is not backed by reserves, nor by
@@ -179,10 +191,12 @@ our decisions both internally, and where appropriate, externally.
     removed and reserves were fully depleted. Over time this floor will slowly deplete as we retire it using
     the transaction fees received from the network.
 
-**Controlling the System
+** Controlling the System
 
-***Input variables
+*** Input variables
+
     In our system above, we can indirectly control the money supply and price through adjusting certain variables:
+
     - Credit factor: This is a global variable that governs the amount of credit being extended to the network as
       a whole. By controlling this, we can extend more or less credit and thus money supply for the same level of
       production / wealth generation.
@@ -198,7 +212,8 @@ our decisions both internally, and where appropriate, externally.
     - Autopilot: TBD <— what factors can we control in the autopilot pricing for either hosts or app providers,
       if any
 
-***Other system variables (excluding supply and demand):
+*** Other system variables (excluding supply and demand):
+
     - Actual credit usage: Credit extended to agents is 0% interest and effectively 0% inflation. In addition
       it cannot be cashed out through the exchange since it was not earned via hosting so there no incentive to
       wait for FX price appreciation. Therefore a rational agent should spend their entire credit limit as long
@@ -407,18 +422,11 @@ weight                  = {
    as Distributed Oracles), or trust a separate module to do so. In Holo Fuel, we host the sale of
    Holo Host services to dApp owners, so we know the historical prices.
 
-<<<<<<< HEAD
-   When a history of Holo Hosting service prices is available, Linear Regression can be used to
-   discover the average fixed (Holo Hosting premium) and variable (CPU, ...) component costs
-   included in the prices, and therefore the current commodity basket price.
-
-=======
    When a history of Holo Hosting service prices is available, Multiple Linear Regression (not
    Multi-variate!) can be used to discover the average fixed (Holo Hosting premium) and variable
    (CPU, ...) component costs included in the prices, and therefore the current commodity basket
    price.
 
->>>>>>> master
 *** Recovering Commodity Basket Costs
 
     To illustrate price recovery, lets begin with simulated prices of a basket of commodities.  A
@@ -687,18 +695,8 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     In the Holo Host environments, Hosts are pooled in tranches of like resource capacity (eg. cpu:
     type, count, ...), quality (eg. service: availability, longevity, ...), and price
     (eg. autopilot/manual pricing: lolo, lo, median, hi, hihi).  A multi-dimensional table of Host
-<<<<<<< HEAD
-    tranches is maintained; each Host inserts itself into the correct table.
-
-    - TODO: How do the DHT peers confirm that a Host isn't lying about its internal computational
-      resources?  A dApp could check, and issue a warrant if the Host is lying, but a DHT peer
-      couldn't independently verify these claims.  There will be great incentive to inflate claims,
-      to draw and serve higher-priced requests...)
-
-=======
     tranches is maintained; each Host inserts itself into the correct table.[fn:1]
 
->>>>>>> master
     A dApp owner also selects the resource requirements (eg. cpu: avx-128+, 4+ cores, ...) service
     level and pricing (eg. median).
 
@@ -1105,14 +1103,10 @@ assert near( control.loop( 1.0, 1.0, now =11. ),  -0.4100 )
 
     Lets implement a simple credit system that adjust K via the PID loop to move the price of the
     credit basket towards our target value.  We'll produce a stream of Hosting receipts, based on
-<<<<<<< HEAD
-    the current basket price and available credit.  Then, we'll compute the
-=======
     the current underlying "median" basket price, with actual pricing modulated by available credit.
     Then, we'll recover this pricing from the steam of Hosting receipts, compute the current Credit
     Factor "K", and issue the next Hosting receipts with respect to the (newly altered) Credit Limit
     computed from the dApp owner's wealth and "K".
->>>>>>> master
 
     This will simulate the feedback effect on pricing of increasing and decreasing credit
     availability.  It assumes that there is a reasonably swift pricing response to credit limit
@@ -1135,25 +1129,7 @@ adva_min                = 98/100                # Trending downward (ie. Moore's
 adva_max                =102/100                # b/c 102% doesn't fully recover from 98%
 
 class credit_sine_prices_pid_K( credit_sine_prices ):
-<<<<<<< HEAD
-    """Adjusts credit.K via PID, in response to prices varying according to a sine wave."""
-
-    '''
-    @property
-    def inflation( self ):
-        return self._inflation
-    @inflation.setter
-    def inflation( self, value ):
-        print( "Changing inflation from {!r} to {!r}".format(
-               self._inflation if hasattr( self, '_inflation' ) else None, value ))
-        if type( value ) not in (int,float):
-            traceback.print_stack( file=sys.stdout )
-        self._inflation = value
-    '''
-
-=======
     """Adjusts credit.K via PID, in response to prices varying randomly, and to a sine wave."""
->>>>>>> master
     def __init__( self, Kpid=None, price_target=None, price_curr=None, now=None, **kwds ):
         """A current price_target (default: 100.0 ) and price_feedback (default: price_target)
         is used to initialize a PID loop.
@@ -1242,23 +1218,6 @@ class credit_sine_prices_pid_K( credit_sine_prices ):
         """
         super( credit_sine_prices_pid_K, self ).advance()
         if int( getattr( self, 'adv_h', 0 )) != int( self.now ):
-<<<<<<< HEAD
-            self.adv_h = int( self.now )
-            k          = random.choice( list( prices.keys() ))
-            adj        = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
-                                     minimum=adva_min, maximum=adva_max )
-            #print( "At {:02d}:{:02d}: Adj. {:5} x {:6.2f}% from {:9.5f} to {:9.5f}".format(
-            #           int( self.now ), int( self.now * 60 ) % 60, k, adj * 100,
-            #           self.prices_base[k], self.prices_base[k] * adj ))
-            self.prices_base[k] *= adj
-
-credit                  = credit_sine_prices_pid_K(
-                                 K=0.5, amp=.5/100,
-                                 step=2 * math.pi / hosts_count / 6,
-                                 prices=prices, basket=basket, # Start w/ the global basket
-                                 price_target=basket_target,
-                                 price_curr=credit.value() ) # Est. initial price => inflation
-=======
             self.adv_h  = int( self.now )
             k           = random.choice( list( prices.keys() ))
             adj         = rnd_std_dst( sigma=adva_sigma, mean=adva_mean,
@@ -1269,7 +1228,6 @@ credit                  = credit_sine_prices_pid_K(
 # are globals, created above, randomly starting at some offset from neutral inflation.  We are varying
 # the amount of credit available, essentially forcing dApp owners to opt for lower or higher tranches
 # of service to stay within their available credit.
->>>>>>> master
 
 credit                  = credit_sine_prices_pid_K(
                               K = 0.5,
@@ -1572,11 +1530,7 @@ for t in range( 1000 ):
 **** The relative exchange activity level between the various exchanges
 
      Increasing inflow through one Exchange, while increasing outflow through other Exchange(s)
-<<<<<<< HEAD
-     indicates a pricing fluctuation in that Exchange currency.
-=======
      indicates an external value fluctuation in that Exchange currency vs. others.
->>>>>>> master
 
      The premium of the Exchange rate vs. the Book Value should rise/fall, until net inflow/outflow
      is roughly equivalent through all Exchanges, taking into account their overall relative
