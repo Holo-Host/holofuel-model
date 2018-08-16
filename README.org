@@ -473,11 +473,11 @@ for k in basket:
     :RESULTS:
     | Commodity | Price | Per  | Per |
     |-----------+-------+------+-----|
-    | holo      |  2.54 | Host | mo. |
-    | net       | 42.19 | TB   | mo. |
-    | ram       |  5.34 | GB   | mo. |
-    | data      | 41.98 | TB   | mo. |
-    | cpu       |  4.90 | Core | mo. |
+    | holo      |  2.50 | Host | mo. |
+    | net       | 38.47 | TB   | mo. |
+    | ram       |  5.17 | GB   | mo. |
+    | data      | 34.42 | TB   | mo. |
+    | cpu       |  5.35 | Core | mo. |
     :END:
 
     #+LATEX: }
@@ -499,7 +499,7 @@ basket_price            = sum( basket[k] * prices[k] for k in basket )
     :RESULTS:
     | Holo Fuel Basket Price |
     |------------------------|
-    | $105.27 / 100.00       |
+    | $100.94 / 100.00       |
     :END:
 
     #+LATEX: }
@@ -580,11 +580,11 @@ for _ in range( number ):
     :RESULTS:
     | Fuel |  calc/err | dApp Requirements                                                               |
     |------+-----------+---------------------------------------------------------------------------------|
-    | 3.75 | 4.34-0.59 | 1.0000 holo Host, 0.0219 net TB, 0.0343 ram GB, 0.0154 data TB, 0.0111 cpu Core |
-    | 3.55 | 4.19-0.64 | 1.0000 holo Host, 0.0211 net TB, 0.0278 ram GB, 0.0097 data TB, 0.0423 cpu Core |
-    | 3.98 | 4.24-0.26 | 1.0000 holo Host, 0.0172 net TB, 0.0200 ram GB, 0.0144 data TB, 0.0546 cpu Core |
-    | 3.58 | 3.69-0.11 | 1.0000 holo Host, 0.0067 net TB, 0.0413 ram GB, 0.0107 data TB, 0.0402 cpu Core |
-    | 5.36 | 4.65+0.71 | 1.0000 holo Host, 0.0178 net TB, 0.0537 ram GB, 0.0215 data TB, 0.0353 cpu Core |
+    | 4.22 | 3.79+0.43 | 1.0000 holo Host, 0.0115 net TB, 0.0026 ram GB, 0.0157 data TB, 0.0549 cpu Core |
+    | 3.08 | 3.02+0.05 | 1.0000 holo Host, 0.0067 net TB, 0.0381 ram GB, 0.0014 data TB, 0.0034 cpu Core |
+    | 4.39 | 4.73-0.34 | 1.0000 holo Host, 0.0390 net TB, 0.0483 ram GB, 0.0073 data TB, 0.0431 cpu Core |
+    | 4.44 | 3.99+0.45 | 1.0000 holo Host, 0.0195 net TB, 0.0300 ram GB, 0.0105 data TB, 0.0407 cpu Core |
+    | 4.52 | 4.33+0.19 | 1.0000 holo Host, 0.0289 net TB, 0.0256 ram GB, 0.0085 data TB, 0.0542 cpu Core |
     |  ... |           |                                                                                 |
     :END:
     #+LATEX: }
@@ -627,15 +627,15 @@ predict                 = { k: regression.predict( select[k] )[0] for k in baske
 
     #+RESULTS:
     :RESULTS:
-    | Score(R^2): | 0.5625595 |        |         |
+    | Score(R^2): | 0.5344763 |        |         |
     |-------------+-----------+--------+---------|
     | Commodity   | Predicted | Actual |   Error |
     |-------------+-----------+--------+---------|
-    | holo        |      2.52 |   2.54 | -0.736% |
-    | net         |     41.76 |  42.19 | -1.018% |
-    | ram         |      5.34 |   5.34 | -0.049% |
-    | data        |     43.47 |  41.98 | +3.555% |
-    | cpu         |      5.10 |   4.90 | +4.039% |
+    | holo        |      2.53 |   2.50 | +1.110% |
+    | net         |     38.09 |  38.47 | -0.980% |
+    | ram         |      4.95 |   5.17 | -4.183% |
+    | data        |     33.15 |  34.42 | -3.678% |
+    | cpu         |      5.16 |   5.35 | -3.574% |
     :END:
 
     #+LATEX: }
@@ -660,7 +660,7 @@ basket_predict          = sum( basket[k] * predict[k]  for k in basket )
     :RESULTS:
     | Holo Fuel Price Recovered | vs. Actual |   Error |
     |---------------------------+------------+---------|
-    | $105.16 / 100.00          |     105.27 | -0.108% |
+    | $100.72 / 100.00          |     100.94 | -0.216% |
     :END:
 
     #+LATEX: }
@@ -792,7 +792,7 @@ class dApp( object ):
         """
         self.duration   = duration
         self.requires   = { k: rnd_std_dst( sigma=reqs_sigma, mean=reqs_mean, minimum=reqs_min ) \
-                                 ,* credit.basket[k] * duration / duration_month
+                                 * credit.basket[k] * duration / duration_month
                              for k in credit.basket }
         # Finally, compute the wealth required to fund this at current credit factor K; work back
         # from the desired credit budget, to the amount of wealth that would produce that at "K".
@@ -930,16 +930,16 @@ predict_value           = credit.value( prices=predict )
     :RESULTS:
     | 24hr. x 3600 Hosts Cost |        holo |        net |        ram |      data |        cpu |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | 24886.852213            | 5928.722386 | 116.958811 | 237.134527 | 58.995707 | 237.567847 |
+    | 24019.210876            | 5946.798222 | 119.229032 | 236.319720 | 59.937195 | 235.520210 |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Score(R^2) 0.9874947    |             |            |            |           |            |
-    | Predicted               |        2.49 |      42.18 |       5.74 |     42.77 |       5.27 |
-    | Actual                  |        2.54 |      42.19 |       5.34 |     41.98 |       4.90 |
-    | Error                   |     -1.712% |    -0.031% |    +7.484% |   +1.879% |    +7.548% |
+    | Score(R^2) 0.9869518    |             |            |            |           |            |
+    | Predicted               |        2.46 |      38.42 |       5.50 |     35.52 |       5.73 |
+    | Actual                  |        2.50 |      38.47 |       5.17 |     34.42 |       5.35 |
+    | Error                   |     -1.703% |    -0.121% |    +6.346% |   +3.192% |    +7.118% |
     |-------------------------+-------------+------------+------------+-----------+------------|
-    | Actual  Basket          |      105.27 |            |            |           |            |
-    | Predict Basket          |      105.15 |            |            |           |            |
-    | Error                   |     -0.119% |            |            |           |            |
+    | Actual  Basket          |      100.94 |            |            |           |            |
+    | Predict Basket          |      100.83 |            |            |           |            |
+    | Error                   |     -0.105% |            |            |           |            |
     :END:
 
     #+LATEX: }
@@ -1346,7 +1346,6 @@ plt.show()
       - Collects commodity and Basket price computations from each Holo Tranche (eventually consistent)
       - Computes median
 
-
 * Holo Fuel Value Stabilization
 
   Price discovery gives us the tools we need to detect {in,de}flation as it occurs.  Control of
@@ -1569,7 +1568,6 @@ for t in range( 1000 ):
      inflow/outflow increases.  The size and number of buy/sell transactions allowed on each
      exchange per unit time will be limited to a certain percentage of the Monetary Velocity of the
      Holo Fuel system.
-
 
 * Footnotes
 
