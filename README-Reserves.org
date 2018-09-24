@@ -1,0 +1,141 @@
+#+TITLE: Holo Fuel Reserve Account Design and Modelling
+#+STARTUP: org-startup-with-inline-images inlineimages
+#+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
+#+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
+
+
+\begin{abstract}
+
+The Holo Reserves are a primary method of purchasing Holo Fuel for Hosting services, and is
+available for Hosts only to redeem Holo Fuel for cash in various currencies.  Others Holo Fuel
+account holders may buy via the Reserves, and and buy/sell via other exchanges, but the reserve's LIFO
+tranches are available to Holo Fuel accounts associated with known Holo Hosts.
+
+Holo Fuel credits redeemable for Hosting are purchased at a certain cost, and later redeemed
+for that cost by Hosts after these services are delivered.  Therefore, the purchase price must
+be palatable for redemption by at least some Hosts.  Of course, Holo dApp Owners are free to
+purchase Holo Fuel on exchanges at lower prices, and Hosts can cash out via exchanges at
+market prices.
+
+The Holo Fuel / currency sale price is also controlled to adjust net currency in/outflows, both to
+adjust for changes in relative currency valuation, and to balance the proportion of Reserves in
+each currency to match the desired Host cash-out currencies.
+
+\end{abstract}
+
+
+* Host Currency Preference and Minimum Value
+
+  Each Host sets their preference for redemption currencies, and an exchange rate minimum for
+  one of them; the others will be deduced, because each of their exchange rates to Holo Fuel
+  are known.
+
+
+  #+LATEX: {\scriptsize
+  #+BEGIN_SRC ipython :session :exports both :results raw drawer
+
+%matplotlib inline
+%config InlineBackend.figure_format = 'retina'
+
+from __future__ import absolute_import, print_function, division
+try:
+    from future_builtins import zip, map # Use Python 3 "lazy" zip, map
+except ImportError:
+       pass
+
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rcParams["figure.figsize"]  = (6,3)
+plt.rcParams["font.size"]       = 6
+import numpy as np
+from sklearn import linear_model
+import collections
+import math
+import random
+import json
+import bisect
+
+from holofuel.model import trading
+
+def rnd_std_dst( sigma, mean=0, minimum=None, maximum=None ):
+    """Random values with mean, in a standard distribution w/ sigma, clipped to given minimum/maximum."""
+    val             = sigma * np.random.randn() + mean
+    return val if minimum is None and maximum is None else np.clip( val, a_min=minimum, a_max=maximum )
+
+
+currencies			= set( [ 'USD', 'EUR', 'CAD', 'CNY', 'RUB', 'HOT' ] )
+host_count			= 100
+rate_mean,rate_sigma		= 0.50, 0.25	# variance in minimum rates of exchange (CAD)
+curr_mean,curr_sigma		= 2,    2	# number of currencies selected
+
+# Load rates, convert observations: [
+#  { "d": "2017-01-03", "FXAUDCAD": { "v": 0.9702 }, ...},
+#  { "d": "2017-01-04" ... }
+# to rates:
+#  { "2017-01-03": { "USD/CAD": 1.29, "CAD/USD": 0.775, "USD/EUR": ... }, "2017-01-04": { ... } }
+rates_data			= json.loads( open( "/Users/perry/src/holofuel-model/static/data/FX_RATES_DAILY-sd-2017-01-03.json" ).read() )
+
+rates				= {}
+for dayrec in rates_data['observations']: 
+    day	= rates[dayrec["d"]] 	= {}
+    for c1 in currencies:
+        if c1 != 'CAD' and 'FX'+c1+'CAD' not in dayrec:
+	    continue
+        for c2 in currencies - set([c1]):
+            if c2 != 'CAD' and 'FX'+c2+'CAD' not in dayrec:
+	        continue
+	    tocad               = 1 if c1 == 'CAD' else dayrec['FX'+c1+'CAD']['v'] # eg. FXUSDCAD: 1.3
+            frcad		= 1 if c2 == 'CAD' else dayrec['FX'+c2+'CAD']['v'] # eg. FXEURCAD: 1.47
+	    day[c1+'/'+c2]	= tocad / frcad                                 # ==>  USD/EUR: 0.884
+rates_days			= sorted( rates.keys() )
+print( json.dumps( rates[rates_days[0]], indent=4 ))
+
+def exchange_rate( day, fr, to ): # "2017-01-17", 'EUR', 'USD'
+    """Finds the exchange rate for a day near to the given YYYY-MM-DD"""
+    i				= bisect.bisect_left( rates_days, day )
+    if i >= len( rates_days ):
+        i		       -= 1
+
+    print( json.dumps( rates[rates_days[i]], indent=4 ))
+    try:
+        return rates[rates_days[i]][fr+'/'+to]
+    except:
+        return math.nan
+
+
+class Host( trading.agent ):
+    def __init__( self, redemption_currencies ):
+        """
+	redemption_currencies: {
+	    "CAD": .50,
+	    "USD": True,
+	    "EUR": False,
+	    "HOT": True
+	}
+	"""
+        self.redemption_currencies = redemption_currencies
+'''	
+for h in range( host_count ):
+    # between 0 and all currencies
+    curr_cnt			= min( len( currencies ), int( rnd_std_dst( mean=curr_mean, sigma=curr_sigma )))
+    redemption_currencies	= { curr: True for curr in random.choices( currencies, k=curr_cnt ) }
+    exch			= rnd_std_dst( mean=rate_mean, sigma=rate_sigma ) # CAD
+    while len( redemption_currencies ) < curr_cnt:
+        redemption_currencies
+'''
+   
+[ [ 'Day', 'From', 'To', 'Exchange' ],
+  None ] \
++ [ [ d, 'EUR', 'USD', "%5.3f" % ( exchange_rate( d, 'EUR', 'USD' ) ) ]
+    for d in [ '2017-01-03', '2017-01-04' ] ] \
++ [ [ '...' ] ]
+
+   #+END_SRC
+   #+RESULTS:
+   :RESULTS:
+   |        Day | From | To  | Exchange |
+   |------------+------+-----+----------|
+   | 2017-01-03 | EUR  | USD |    1.040 |
+   | 2017-01-04 | EUR  | USD |    1.046 |
+   |        ... |      |     |          |
+   :END:
