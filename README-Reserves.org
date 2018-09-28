@@ -55,9 +55,11 @@ import math
 import random
 import json
 import bisect
+import logging
+logging.basicConfig( level=logging.DEBUG )
 
 from holofuel.model import trading
-
+from holofuel.model.reserve_lifo import reserve, reserve_issuing
 
 def rnd_std_dst( sigma, mean=0, minimum=None, maximum=None ):
     """Random values with mean, in a standard distribution w/ sigma, clipped to given minimum/maximum."""
@@ -288,18 +290,18 @@ for curr in currencies:
   |          |          |  3/ea +/-2 |    Rate |         |         |
   | Currency | % Weight | % Selected |    Mean |  Median | Std.Dev |
   |----------+----------+------------+---------+---------+---------|
-  | USD      |      2.3 |       12.0 |  0.4450 |  0.4841 |  0.1888 |
-  | EUR      |     25.8 |       52.0 |  0.3831 |  0.3638 |  0.1675 |
-  | CAD      |     22.5 |       46.0 |  0.5100 |  0.5545 |  0.2101 |
-  | CNY      |     18.1 |       40.0 |  2.5946 |  2.4045 |  1.2560 |
-  | RUB      |     17.3 |       41.0 | 25.5010 | 26.2601 | 10.8414 |
-  | TRY      |      3.7 |       10.0 |  1.2427 |  1.2395 |  0.5123 |
-  | HOT      |     10.3 |       36.0 |  1.0000 |  1.0000 |  0.0000 |
+  | USD      |      8.2 |       29.0 |  0.3758 |  0.3571 |  0.1378 |
+  | EUR      |     13.9 |       38.0 |  0.3654 |  0.3608 |  0.1560 |
+  | CAD      |     15.0 |       39.0 |  0.4997 |  0.4888 |  0.1940 |
+  | CNY      |     17.4 |       48.0 |  2.6041 |  2.5034 |  0.9318 |
+  | RUB      |     13.2 |       43.0 | 25.0589 | 24.0935 | 10.5494 |
+  | TRY      |     12.0 |       32.0 |  1.3555 |  1.3837 |  0.4350 |
+  | HOT      |     20.2 |       50.0 |  1.0000 |  1.0000 |  0.0000 |
   :END:
   #+LATEX: }
 
 
-** Host Autopilot Pricing
+** Host Auto-pilot Pricing
 
    A Host can specify rates to charge for its various computational resources, in Holo Fuel, or it
    can set "auto-pilot" pricing.  The lower the pricing, the higher the expected utilization of the
@@ -344,13 +346,258 @@ for curr in currencies:
     more Hosts are hosting the hApp, and that the aggregate Hosting costs to the larger hApp owner
     are about 100x the costs of the lesser hApp.
 
-*** hApp/Host Autopilot Feedback
+*** hApp/Host Auto-pilot Feedback
 
-    If an hApp owner is aware of cyclicality or spikes in its utilization (eg. just before
-    launching an advertising campaign), the owner can even pre-allocate increased resources by
-    temporarily increasing its own hApp Holo service autopilot pricing to a higher tier.  This
-    increases the amount it is willing to pay for hosting, putting it into contention for
-    installation by Hosts with "hi" (premium) auto-pilot pricing.  When the spike actually hits,
-    the hApp owner can restore its own pricing auto-pilot to
+    If an hApp owner is aware of cyclicality or spikes in its utilization (eg. just before launching
+    an advertising campaign), the owner can even pre-allocate increased resources by temporarily
+    increasing its own hApp Holo service auto-pilot pricing to a higher tier.  This increases the
+    amount it is willing to pay for hosting, putting it into contention for installation by Hosts
+    with "hi" (premium) auto-pilot pricing.  When the spike actually hits, the hApp owner can
+    restore its own pricing auto-pilot to the normal tier, letting regular Holo price-based
+    levelling distribute the hApp appropriately for the new load.
     
+** Modelling Holo hApp/Host Auto-pilot Pricing
 
+   The goal of Holo hApp and Host Auto-pilot pricing is to allow both hApp owners and Hosts achieve
+   equilibrium pricing within a budget they can afford.
+
+   Holo hApp owners have clients to serve, and require Host resources within a certain budget.
+   Hosts have resources to sell, and want to make the most money by hosting the hApps paying the
+   most for those resources.
+
+*** Holo hApp Host Tranching
+
+    A core tenet of Holochain applications is that their state is stored privately in a local chain,
+    and publicly in an eventually consistent DHT.  So, in theory, any "read only" client request
+    accessing public data can be served by any Host.  The application using Holochain must be
+    resilient to the eventually consistent nature of the underlying datastore.  Much of Holo's
+    activity will, however, be the establishment of Holochain proxy instances, which are capable of
+    storing/updating a local chain on behalf of a (web-based) user (the identity's signing keys are
+    held by the client; communication encryption keys are held by the proxies).
+
+    The Hosts to provide these services are chosen pseudorandomly from pools of Hosts of like
+    performance and cost, called tranches.  The probability of getting any Host is proportional to
+    its desirability (cheapest highest performing hosts first).  In aggregate, the average price
+    paid per request is intended to be near the "median" price/performance; a mix of high/low priced
+    and high/low performing Hosts is used.  The tranches are dynamically updated based on analysis
+    of the actual request performance and current Host pricing.  The mix of Hosts used to service
+    requests is adjusted dynamically based on the hApp owner's current Hosting cost targets; a hApp
+    currently targeting below-market *discount* Hosting costs will get a mixture of Hosts averaging
+    that lower target cost (ie. less *premium* priced Hosts, more *discount* and *market* priced
+    Hosts.)
+
+    Each set of tranches is an N-dimensional grid of buckets, with axes denominated in the various
+    ratings for the feature.  The 'holo' commodity is simple; a single axis based on transaction
+    response time, as computed by Holo's interfaces on the Host.  These buckets are at standard
+    deviation boundaries in the measured data, which is assumed to be more or less normally
+    distributed.
+
+    #+CAPTION: Standard Deviation
+    #+NAME: Standard Deviation
+    [[./images/normal-distribution-large.png]]
+
+
+    The 5 buckets on the "performance" axis contain Hosts which fall in the standard deviation
+    groups $<-1\sigma$ (lolo 15%), $<0\sigma$ (lo 35%), $>0\sigma$ (hi 35%) and $>+1\sigma$ (hihi
+    15%) of the median response time.  The 3 buckets on the Holo Host "pricing" axis, *discount*
+    ($-2\sigma$ - $-.5\sigma$, lo 29%), *market* ($-.5\sigma$ - $+.5\sigma$, mid 38%) and *premium*
+    ($+.5\sigma$ - $+2\sigma$, hi 29%) are selected by each Hosts' dynamically adjusted pricing. The
+    lowest performing $<-2\sigma$ (*bulk* 2%) are not used for serving real-time requests, until
+    their response times to bulk requests moves them out of the lolo group.  The *peak* nodes can be
+    reserved for the most performance sensitive requests (eg. CDN like activities).
+
+ | Performance >> | 2% bulk          | 28% slow                 | 40% median                | 28% fast                 | 2% peak     |
+ | v Price v      | $<-2\sigma$      | $-2\sigma$ - $-.5\sigma$ | $-.5\sigma$ - $+.5\sigma$ | $+.5\sigma$ - $+2\sigma$ | $>+2\sigma$ |
+ |----------------+------------------+--------------------------+---------------------------+--------------------------+-------------|
+ | discount       | "background"     | some requests            | most requests             | some requests            | CDN, web    |
+ | market         | API requests     |                          | fewer requests            |                          | proxies,    |
+ | premium        | (none; ignored?) | very few                 | yet fewer request         | very few                 | relay, etc. |
+ |                |                  |                          |                           |                          |             |
+
+    This arrangement leads to a cooperative feedback loop, allowing both Holo hApps and Hosts to
+    dynamically adjust their pricing:
+
+    - A *premium* Host modulates its prices to keep its utilization in a low band, a *discount* Host
+      does so to keep its utilization high.  This causes the Holo hApp administration DNA to collect
+      this information from time to time recompute price statistics and standard deviations, and
+      move it directly between *discount*, ..., *premium* tranches in its performance band.
+      - Eventually (as its performance reflects its changed utilization), the Holo hApp manager will
+        also migrate it between *bulk*, *slow*, *median*, *fast* and *peak* performance tranches.
+    - A *discount* hApp adjusts its cost targets to keep its performance in the lower acceptable
+      range, the *premium* hApp adjusts to keep performance in the higher end of the band.  It
+      selects random Hosts from various tranches with varying probabilites to achieve its target
+      average Hosting cost.
+      - If costs escalate due to overall increasing Hosting costs, its pool of credit supports less
+        runtime.  The owner should be informed that they may want to drop to a lower cost target
+        (eg. from *market* to *discount*) to stretch out its hosting account, or put more money in.
+
+    Overall, the process of deploying an hApp:
+
+    - Holo Host installs the hApp, identifies itself to the hApp manager
+    - hApp Manager adds it to the lowest performing (probably cheapest) tranche in each resource category
+    - Holo begins sending requests, collecting signed service logs
+    - The Host performance tranches are recomputed based on service log resource utilization and response timing
+      - Each service response carries the total used Hosts wall-clock duration (units of Holo) and
+        CPU seconds, plus the total (hourly exponential moving average) Storage, RAM and Network
+        utilization and total wall-clock duration of requests served. This allows us to assign a fraction of
+	the total hApp resource utilization to this request, and deduce a price
+      - The cost tranche boundaries are recomputed from the latest set of new Host pricing data
+        collected from ongoing DHT scans of all Hosts, and the Hosts are distributed into their new
+        tranches on the cost axis.
+    - Prices paid per avg. request increase as Hosts move to higher cost tranches, and/or the standard
+      deviation "boundaries" change and the average price in the target tranches increases.
+      - The hApp manager warns the owner of significant changes in hosting costs, so they can adjust
+	their preferred cost settings.
+
+*** Simulation of Client, hApp, Host and Reserve Interaction
+
+    We will simulate a set of tranches of Hosts over a single commodity, 'holo' hosting.  This is
+    the commodity representing wall-clock duration of requests serviced by Holo Hosts.  Slower hosts
+    are priced cheaply, faster hosts are more expensive.  This is an aggregate of all types of
+    requests made to a hosted hApp, so represents the full spectrum of Host behaviours (requests
+    that are not satisfiable in a deterministic time should be excluded for the purposes of Host
+    characterization).  For example, a very fast host on a low-latency network but with slow disk
+    storage will be penalized vs. an identical host with SSDs, because its disk-intensive requests
+    will have a response time distribution with higher mean and standard deviation.  However, it may
+    offset this by pricing its 'storage' and 'bandwidth' commodities at a premium.  For the purposes
+    of the model, various Hosts will satisfy requests at various rates, but they will all be
+    considered to be in one pool.  Normally, a host that takes longer to process requests would
+    migrate to a lower performance pool, where its price would probably move it to the *premium*
+    price tranche in that performance band, reducing its request rate, and hence lowering its
+    income.
+
+    The value of Holo fuel (its basket) float; the market value (eg. USD$/fuel bid/ask on the
+    Reserve) will fluctuate.  Fixing the value-stability of Holo fuel is arbitrary, and can be
+    maintained at an arbitrary value by limiting the inflow of Holo fuel into the core Holo
+    ecosystem.  We will not be doing that in this model.  However, when prices rise (Client requests
+    increase, Host load increases prices), eventually they will reach the Reserve ask price set by
+    the Hosts' cash-out settings.  This will result in the issuance of more Holo fuel, moderating
+    price deflation.  Basically, Holo fuel prices should cap out at Host cash-out price.  We can
+    limit Reserve issuance and/or increase prices to allow further increase in Holo fuel price, but
+    we won't do that in this model.
+
+    Hosts will sell fuel on the Reserve (which is also an Exchange) to whomever is buying at market
+    rates, to maintain their monthly cost needs.  Holo hApps will buy on the Reserve/exchange to
+    maintain service.  As prices increase HODLers should begin liquidating some of the HOT$177B in
+    Holo fuel holdings to furnish this need.  They would sell on a HOT/fuel exchange to do this, but
+    we'll just simulate everyone holding Holo fuel.
+
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :file images/client-requests.png :exports both :results raw drawer
+
+from scipy import stats # stats.zscore, stats.norm.cdf, ...
+
+def std_dst_prob( SD ):
+    """Given a number of SD away from the mean, compute the probability of that number being part of the
+    normal distribution.  For example, if we're +2 standard deviations away, we're in the 97.7th
+    percentile; only 2.23% of the population should exceed this value in a normal distribution.  At
+    0 SD away, we're right on the 50th percentile; 1/2 should be less, 1/2 more.  We want a function
+    that, given a SD, provides us a probability of 1.0 at exactly 0 SD away, and falls off in the
+    shape of the Bell Curve as we retreat from the mean; At 0.0, we want 2 x 0.5 == 1.0; At +2.0 or
+    -2.0 SD away, we want the result == 2 * 0.0227 == 0.0454 .
+
+        >>> stats.norm.cdf( 0 )
+        0.5
+        >>> stats.norm.cdf( +2 )
+        0.9772498680518208
+        >>> stats.norm.cdf( -2 )
+        0.022750131948179195
+        >>> 1 - stats.norm.cdf( +2 )
+        0.02275013194817921
+
+    """
+    if SD < 0:
+        return 2.0 * stats.norm.cdf( SD )
+    else:
+        return 2.0 * ( 1 - stats.norm.cdf( SD ))
+
+class Client( trading.agent ):
+    """A client tries to perform a certain number of requests per hour, during a 12-hour
+    window of time peaking around some time during the day.  Our quanta is 1 hour, so we'll
+    recompute our next hour's requests every hour -- as well, each Client will have a random
+    start time during the first hour.  So, if we sample all the client's self."""
+    def __init__( self,
+            midday_mean=12 * trading.hour, midday_sigma=6,	# noon, +/- 6 hours
+	    requests_mean=10, requests_sigma=5,			# 10 req/h, +/- 5 peak
+	    quanta		= 1 * trading.hour,		# compute next hour's requests hourly
+	    **kwds ):
+        super( Client, self ).__init__( quanta=quanta, **kwds )
+	self.midday_mean	= midday_mean
+	self.midday_sigma	= midday_sigma
+	self.requests_mean	= requests_mean
+	self.requests_sigma	= requests_sigma
+	self.requests		= 0
+	self.unsatisfied	= 0
+
+    def run( self, **kwds ):
+        if not super( Client, self ).run( **kwds ):
+            return False
+	# quanta satisfied; .now updated, .dt has time period since last run.  Compute our next
+	# hour's number of satisfied/unsatisfied requests, based on the last hour's Holo system
+	# thruput.  Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization
+	# of Host resources, the next hour we'll compute the target rate we'd like (say, 10
+	# requests), but reduce it by / 1.25, and say 8.0 satisfied, 2.0 unsatisfied.
+	peak_desired		= rnd_std_dst( mean=self.requests_mean, sigma=self.requests_sigma, minimum=0 )
+	# how many hours -/+ from our midday peak utilization?  Pick a random hour we want to peak,
+	# somewhere near our desired "midday".  Lets pick a random normal value around our target,
+	# and then compute our Z-score: what is the probability of something being in the normal
+	# distribution, that far from the mean.  For example, if our curr_hour is 11:00, and our peak
+	# hour comes out to be exactly 12:00, we're -1 hour away.  If our sigma (size of 1 standard deviation)
+	# is 6 hours, we're -1/6th SD away from the mean.
+	curr_hour		= self.now % ( 24 * trading.hour ) / trading.hour
+	peak_hour		= rnd_std_dst( mean=self.midday_mean, sigma=self.midday_sigma ) / trading.hour
+	curr_sd			= ( curr_hour - peak_hour ) / self.midday_sigma
+	curr_hour_prob		= std_dst_prob( curr_sd )
+	hour_target		= peak_desired * curr_hour_prob
+	#print( "curr/peak hour: {} vs. {}, curr_sd: {}, hour_target: {}, prob: {} ".format( 
+	#    curr_hour, peak_hour, curr_sd, hour_target, curr_hour_prob ))
+	self.requests		= hour_target
+	self.unsatisfied	= 0 # TODO: get this from Host average utilization
+	return True
+
+
+class Sample_engine( trading.engine_status ):
+    def __init__( self, **kwds ):
+        super( Sample_engine, self ).__init__( **kwds )
+	self.requests		= [] # [ (<now>,<client-requests>)
+
+    def status( self, now ):
+        """Collect hourly snapshots of all of our Client's simulated requests for that hour."""
+        super( Sample_engine, self ).status( now=now )
+	self.requests.append( (now, sum( c.requests for c in self.agents )) )
+
+    def cycle( self, now ):
+        super( Sample_engine, self ).cycle( now=now )
+	#print( str( self.world ))
+
+client_count			= 100
+clients				= [ Client( ) for _ in range( client_count ) ]
+
+duration			= 2 * trading.day
+
+
+res				= reserve_issuing( "Holofuel/USD", supply_period=trading.hour, supply_available=1000000 )
+wld				= trading.world( duration=duration, quanta=trading.hour/10 )
+eng				= Sample_engine( world=wld, exch=res, agents=clients, status_period=1 * trading.hour / 2 )
+print( str( eng.world ))
+eng.run()
+print( "Done: %s" % ( eng.world ))
+
+x_now,y_req			= [],[]
+if eng.requests:
+    x_now,y_req			= zip( *eng.requests )
+plt.plot( x_now, y_req, label="Requests/hour" )
+plt.xlabel( "Hours" )
+plt.ylabel( "Requests" )
+plt.legend( loc="upper right" )
+plt.title( "Hourly Request rate" )
+plt.show()
+
+    #+END_SRC
+    #+RESULTS:
+    :RESULTS:
+    [[file:images/client-requests.png]]
+    :END:
+    #+LATEX: }
+
+    So, here we observe the Client hourly request load generated by a number of clients in a single time zone.
