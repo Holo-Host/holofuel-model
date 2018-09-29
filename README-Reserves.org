@@ -171,7 +171,9 @@ rates				= Rates( "static/data/FX_RATES_DAILY-sd-2017-01-03.json" )
   #+BEGIN_SRC ipython :session :exports both :results raw drawer
 
 class Host( trading.agent ):
-    def __init__( self, redemption ):
+    def __init__( self, redemption,
+	    quanta = 1 * trading.hour,
+	    **kwds ):
         """Support 0 or 1 specified exchange rate, deducing all others.  Filter out currencies not desired
 	(target rate is Falsey). 
 
@@ -184,6 +186,7 @@ class Host( trading.agent ):
 	}
 
         """
+	super( Host, self ).__init__( quanta=quanta, **kwds )
         self.redemption		= { c: redemption[c]
 	                            for c in redemption
 				    if redemption[c] }
@@ -239,7 +242,7 @@ for h in range( host_count ):
     if fiat and rate_cad:
         for curr in np.random.choice( a=list( fiat ), size=min( rate_num, len( fiat )), replace=False ):
             redemption[curr]	= rate_cad * rates.exchange( rates.days[0], 'CAD', curr )
-    hosts.append( Host( redemption=redemption ))
+    hosts.append( Host( identity = "Host{}".format( h ), redemption = redemption ))
     #print( "CAD exch: %6.4f, target Fiat %r == %r %s" % (
     #    rate_cad, fiat, hosts[-1].redemption, "" if rate_cad else "==> market rates" ))
 
@@ -291,13 +294,13 @@ for curr in currencies:
   |          |          |  3/ea +/-2 |    Rate |         |         |
   | Currency | % Weight | % Selected |    Mean |  Median | Std.Dev |
   |----------+----------+------------+---------+---------+---------|
-  | USD      |     16.9 |       43.0 |  0.3795 |  0.4311 |  0.1602 |
-  | EUR      |      8.4 |       17.0 |  0.3072 |  0.2798 |  0.2077 |
-  | CAD      |     22.4 |       43.0 |  0.5316 |  0.5472 |  0.2577 |
-  | CNY      |     25.2 |       42.0 |  2.7400 |  2.6039 |  1.2969 |
-  | RUB      |      5.6 |       16.0 | 20.3969 | 19.4606 | 11.5680 |
-  | TRY      |     11.8 |       25.0 |  1.3454 |  1.3422 |  0.6692 |
-  | HOT      |      9.7 |       23.0 |  1.0000 |  1.0000 |  0.0000 |
+  | USD      |     10.9 |       27.0 |  0.3557 |  0.3435 |  0.1477 |
+  | EUR      |     28.8 |       56.0 |  0.3573 |  0.3800 |  0.1521 |
+  | CAD      |      6.3 |       23.0 |  0.4665 |  0.4615 |  0.2005 |
+  | CNY      |      3.3 |        9.0 |  2.2201 |  2.3354 |  1.0113 |
+  | RUB      |     21.2 |       52.0 | 23.3352 | 24.2728 |  8.9355 |
+  | TRY      |     22.6 |       51.0 |  1.3524 |  1.3577 |  0.5907 |
+  | HOT      |      6.9 |       22.0 |  1.0000 |  1.0000 |  0.0000 |
   :END:
   #+LATEX: }
 
@@ -512,27 +515,46 @@ def std_dst_prob( SD ):
     else:
         return 2.0 * ( 1 - stats.norm.cdf( SD ))
 
-class Client( trading.agent ):
-    """A client tries to perform a certain number of requests per hour, during a 12-hour
+
+
+def exponential_moving_average( current, sample, weight ):
+    return sample if current is None else current + weight * ( sample - current )
+
+
+class Client_hApp( trading.actor ):
+    """A client tries to perform a certain number of requests per hour (via an hApp), during a 12-hour
     window of time peaking around some time during the day.  Our quanta is 1 hour, so we'll
-    recompute our next hour's requests every hour -- as well, each Client will have a random
-    start time during the first hour.  So, if we sample all the client's self."""
+    recompute our next hour's requests every hour -- as well, each Client will have a random start
+    time during the first hour.  So, if we sample all the client's self.requests at the Nyquist
+    rate, we'll have a good instantaneous view of the current request rate, in request/hr. """
     def __init__( self,
-            midday_mean=12 * trading.hour, midday_sigma=6,	# noon, +/- 6 hours
-	    requests_mean=10, requests_sigma=5,			# 10 req/h, +/- 5 peak
-	    quanta		= 1 * trading.hour,		# compute next hour's requests hourly
+            midday_mean = 12 * trading.hour, midday_sigma = 2,	# noon, +/- 2 hours has 2/3 of requests
+	    requests_mean = 10, requests_sigma = 2,		# 10 req/h, +/- 2 peak
+	    quanta = 1 * trading.hour,				# compute next hour's requests hourly
+	    requests_avg_dur = 2 * trading.day,			# keep ?-day rolling average of request rate
+	    holofuel_runway = 7 * trading.day,			# target this many day's fuel on hand
+	    minimum = -math.inf,				# allow client to go into debt
 	    **kwds ):
-        super( Client, self ).__init__( quanta=quanta, **kwds )
-	self.midday_mean	= midday_mean
+        super( Client_hApp, self ).__init__(
+		quanta		= quanta,
+		minimum		= minimum,
+		needs		= [ trading.need_t( 0, None, 'Holofuel', quanta, 0 )], # dummy; adjust targets manually
+		**kwds )
+	self.midday_mean	= midday_mean			# eg. -7 (Mountain), +5 (China Standard)
 	self.midday_sigma	= midday_sigma
 	self.requests_mean	= requests_mean
 	self.requests_sigma	= requests_sigma
 	self.requests		= 0
 	self.unsatisfied	= 0
+	# avg. should be somewhere around here
+	self.requests_avg	= requests_mean * ( 3 * midday_sigma/2 / 24 ) # 99.8% w/in 3 sigma of mean
 
-    def run( self, **kwds ):
-        if not super( Client, self ).run( **kwds ):
-            return False
+	self.requests_avg_dur	= requests_avg_dur
+	self.compute_requests_rate( now=self.start )
+
+	self.holofuel_runway	= holofuel_runway
+
+    def compute_requests_rate( self, now ):
 	# quanta satisfied; .now updated, .dt has time period since last run.  Compute our next
 	# hour's number of satisfied/unsatisfied requests, based on the last hour's Holo system
 	# thruput.  Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization
@@ -545,50 +567,141 @@ class Client( trading.agent ):
 	# distribution, that far from the mean.  For example, if our curr_hour is 11:00, and our peak
 	# hour comes out to be exactly 12:00, we're -1 hour away.  If our sigma (size of 1 standard deviation)
 	# is 6 hours, we're -1/6th SD away from the mean.
-	curr_hour		= self.now % ( 24 * trading.hour ) / trading.hour
-	peak_hour		= rnd_std_dst( mean=self.midday_mean, sigma=self.midday_sigma ) / trading.hour
-	curr_sd			= ( curr_hour - peak_hour ) / self.midday_sigma
+	curr_hour		= ( now % trading.day ) / trading.hour				# (0,24] UTC
+	peak_hour		= rnd_std_dst( mean=self.midday_mean, sigma=self.midday_sigma )	# (-12,+12)
+	norm_hour		= ( peak_hour + 24 ) % 24 # convert eg. timezone -7 to +17 hour of UTC day
+	diff_hour		= curr_hour - norm_hour
+	if diff_hour < -12: 
+	    diff_hour 	       += 24
+	elif diff_hour > +12:
+	    diff_hour 	       -= 24
+	#print( "midday_mean: {self.midday_mean}, peak: {peak_hour}, curr: {curr_hour}, norm: {norm_hour}, diff: {diff_hour}".format( **locals() ))
+	
+	curr_sd			= diff_hour / self.midday_sigma
 	curr_hour_prob		= std_dst_prob( curr_sd )
 	hour_target		= peak_desired * curr_hour_prob
 	#print( "curr/peak hour: {} vs. {}, curr_sd: {}, hour_target: {}, prob: {} ".format( 
 	#    curr_hour, peak_hour, curr_sd, hour_target, curr_hour_prob ))
 	self.requests		= hour_target
 	self.unsatisfied	= 0 # TODO: get this from Host average utilization
+	self.requests_avg	= exponential_moving_average( self.requests_avg, self.requests, self.quanta / self.requests_avg_dur )
+
+    def run( self, **kwds ):
+        # Runs the Client/hApp trading.actor's needs/targets and issues trades as required to get
+	# self.targets satisfied.
+        if not super( Client_hApp, self ).run( **kwds ):
+            return False
+
+	# Transfer our last hour's request rate Hosting payment in Holofuel, to a random Host.
+	host			= random.choice( hosts )
+	cost			= self.requests
+	try:		 host.assets['Holofuel'] +=  cost
+        except KeyError: host.assets['Holofuel']  = +cost
+	try:		 self.assets['Holofuel'] -=  cost
+        except KeyError: self.assets['Holofuel']  = -cost
+
+	# Compute our next hour's Request rate, based on time of day
+	self.compute_requests_rate( now=self.now )
+
+	# We've computed our requests_avg Requests/hour.  We have an hourly 'Holofuel' need: but,
+	# we've set it to 0; we'll adjust self.targets manually to keep (say) a week's worth of
+	# runway Holo fuel on hand.  We'll be paying Hosting fees hourly for the last hour's
+	# requests, out of our Holo fuel assets, reducing them, triggering a buy to bring us back up
+	# to targets.
+	self.target['Holofuel']	= self.holofuel_runway * self.requests_avg / self.quanta 
 	return True
 
 
 class Sample_engine( trading.engine_status ):
     def __init__( self, **kwds ):
         super( Sample_engine, self ).__init__( **kwds )
-	self.requests		= [] # [ (<now>,<client-requests>)
+	self.requests		= [] # [ (<now>,<client-requests>), ... ]
+	self.hApp_holdings	= [] # [ (<now>,{'Holofuel': 123, 'USD':-123}), ... ]
+	self.Host_holdings	= []
+
+    @property
+    def hApps( self ):
+        for a in self.agents:
+            if isinstance( a, Client_hApp ):
+    	        yield a
+
+    @property
+    def Hosts( self ):
+        for a in self.agents:
+            if isinstance( a, Host ):
+    	        yield a
 
     def status( self, now ):
-        """Collect hourly snapshots of all of our Client's simulated requests for that hour."""
+        """Collect hourly snapshots of all of our Client/hApps' simulated requests for that hour and rolling avg."""
         super( Sample_engine, self ).status( now=now )
-	self.requests.append( (now, sum( c.requests for c in self.agents )) )
+	self.requests.append( (now, sum( c.requests for c in self.hApps ), sum( c.requests_avg for c in self.hApps )) )
+	self.hApp_holdings.append( (now, {
+	    'USD':	sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
+	    'Holofuel':	sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps )
+	}) )
+	self.Host_holdings.append( (now, {
+	    'USD':	sum( c.balances.get( 'USD' ) or 0 for c in self.Hosts ),
+	    'Holofuel':	sum( c.assets.get( 'Holofuel' ) or 0 for c in self.Hosts )
+	}) )
+	print( "{}: Holofuel Target: {}, Holdings: {}, USD: {} Order Book:\n{}".format( 
+	    str( self.world ), 
+	    sum( c.target.get( 'Holofuel' ) or 0 for c in self.hApps ),
+	    sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps ),
+	    sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
+	    self.exchange.format_book() ))
 
-    def cycle( self, now ):
-        super( Sample_engine, self ).cycle( now=now )
-	#print( str( self.world ))
+# 
+# Create varying populations with different request activity times
+# 
+pop_t				= collections.namedtuple( 'Population', ['locale', 'tz', 'P'] )
+populations			= [
+    pop_t( 'NA-west', -8,  100e6 * .9 ),
+    pop_t( 'NA-mid',  -6,   75e6 * .8 ),
+    pop_t( 'NA-east', -5,  150e6 * .9 ),
+    pop_t( 'Africa',  +2, 1.21e9 * .2 ),
+    pop_t( 'EU',      +0,  750e6 * .7 ),
+    pop_t( 'RU',      +3,  150e6 * .6 ),
+    pop_t( 'Asia',    +8, 1.38e9 * .3 ),
+]
 
-client_count			= 100
-clients				= [ Client( ) for _ in range( client_count ) ]
+def population_middays( count, *matches ): # eg. 'NA', 'Asia'; empty matches == everything
+    pops_selected		= [ p for p in populations for m in ( matches or [''] ) if m in p.locale ]
+    pop_prob			= [ p.P for p in pops_selected ] # population * middle-class,technical
+    pop_prob		       /= np.sum( pop_prob ) # normalize sum of probabilites to 1.0
+    pop_tz			= [ p.tz for p in pops_selected ]
+    pop_middays			= np.random.choice( a=pop_tz, size=count, replace=True, p=pop_prob )
+    print( ', '.join( "{:>10}: UTC {:+d} P({:.2f}):".format( locale, tz, prob )
+                      for locale,prob,tz in zip( (p.locale for p in pops_selected ), pop_prob, pop_tz )))
+    return pop_middays
 
-duration			= 2 * trading.day
+
+# 
+# Render a duration of client_count Client's request activity
+# 
+client_count			= 50
+sim_duration			= 5 * trading.day
+
+clients				= [ Client_hApp(
+					identity	= "Cli/hApp{}".format( n ),
+					midday_mean	= midday_mean )
+                                    for n,midday_mean in enumerate( population_middays( client_count, 'NA', 'Asia' )) ]
 
 
-res				= reserve_issuing( "Holofuel/USD", supply_period=trading.hour, supply_available=1000000 )
-wld				= trading.world( duration=duration, quanta=trading.hour/10 )
-eng				= Sample_engine( world=wld, exch=res, agents=clients, status_period=1 * trading.hour / 2 )
+res				= reserve_issuing( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
+wld				= trading.world( duration=sim_duration, quanta=trading.hour / 4 ) # 2x Nyquise
+eng				= Sample_engine( world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 )
 print( str( eng.world ))
 eng.run()
 print( "Done: %s" % ( eng.world ))
 
-x_now,y_req			= [],[]
+
+x_now,y_req,y_avg		= [],[],[]
 if eng.requests:
-    x_now,y_req			= zip( *eng.requests )
+    x_now,y_req,y_avg		= zip( *eng.requests )
+
 fig,ax = plt.subplots()
 plt.plot( x_now, y_req, label="Requests/hour" )
+plt.plot( x_now, y_avg, label="Requests/hour (avg)" )
 formatter = matplotlib.ticker.FuncFormatter( lambda s, x: '%dd%02d:%02d' % (
     s // trading.day, ( s % trading.day ) // trading.hour, ( s % trading.hour ) // trading.minute ))
 ax.xaxis.set_major_formatter( formatter )
@@ -606,14 +719,15 @@ plt.show()
     :END:
     #+LATEX: }
 
-    So, here we observe the Client hourly request load generated by a number of clients in a single
-    time zone.  Of course, we'll spread out the midday times to simulate loads coming from various
-    sizes of populations.
+    So, here we observe the Client/hApp hourly request load generated by a number of clients in a
+    couple of time zones, over a few days; Asia is bigger and more concentrated, NA is more spread
+    out.  Of course, we'll spread out the midday times to simulate loads coming from various sizes
+    of populations.
 
-    The request rate is dimensionless; we'll assume that it is denominated in 'holo'; 1 'holo' x
-    hour is 1 hour of wall-clock duration worth of requests served by a Host.  This is generally
-    linearly related to the number of cores on the Host, but is also affected the CPU speed, RAM
-    speed, bandwidth and latency and storage speed.  We'll assume our Hosts are pretty homogeneous;
+    The request rate is dimensionless; we'll assume that it is denominated in 'holo'; 1 'holo' hour
+    is 1 hour of wall-clock duration worth of requests served by a Host.  This is generally linearly
+    related to the number of cores on the Host, but is also affected the CPU speed, RAM speed,
+    bandwidth and latency and storage speed.  We'll assume our Hosts are pretty homogeneous;
     basically, 1 hour of 'holo' requires 1 Host for 1 hour; to scale up to service 100 more 'holo'
     per hour requires 100 more Holo hosts.
 
@@ -622,3 +736,50 @@ plt.show()
     Instead of simulating the hApp owner buying Holo fuel and paying it to the Host, we'll simply
     have the Clients directly buy the Holo fuel required to service their requests.  Like a hApp
     owner, they'll need to buy it at "market" for that period's worth of requests.
+
+    The "Requests/hour (avg)" gives the Client/hApp the information it needs to fund future
+    requests.  We ensure that our Client/hApps have always got enough Holo fuel to fund a week's
+    worth of hosting.
+
+    Holo fuel is transferred to a random Host on an hourly basis by each Client/hApp.  Here we see
+    the purchases of Holofuel from the Reserve being transferred to the Hosts, and the increasing
+    total USD$ cost of Hosting accruing to the Client/hApps:
+
+    #+LATEX: {\scriptsize
+    #+BEGIN_SRC ipython :session :file images/client-holdings.png :exports both :results raw drawer
+
+fig,(ax0,ax1,ax2)= plt.subplots( 3, sharex=True, figsize=(6,3) )
+
+ax0.plot( [ x for x,h in eng.hApp_holdings ], [h['Holofuel'] for x,h in eng.hApp_holdings ],
+               label='Client/hApp Holofuel held' )
+ax0.fmt_ydata = lambda x: '%.2f' % x
+ax0.grid( True )
+ax0.set_ylabel( 'Holofuel' )
+
+ax1.plot( [ x for x,h in eng.hApp_holdings ], [h['USD'] for x,h in eng.hApp_holdings ],
+               label='Client/hApp USD' )
+ax1.fmt_ydata = lambda x: '%.2f' % x
+ax1.grid( True )
+ax1.set_ylabel( 'USD' )
+
+ax2.plot( [ x for x,h in eng.Host_holdings ], [h['Holofuel'] for x,h in eng.Host_holdings ],
+               label='Host Holofuel' )
+ax2.fmt_ydata = lambda x: '%.2f' % x
+ax2.grid( True )
+ax2.set_ylabel( 'Holofuel' )
+
+ax2.set_xlabel( "Time (hours)" )
+formatter = matplotlib.ticker.FuncFormatter( lambda s, x: '%dd%02d:%02d' % (
+    s // trading.day, ( s % trading.day ) // trading.hour, ( s % trading.hour ) // trading.minute ))
+ax2.xaxis.set_major_formatter( formatter )
+fig.autofmt_xdate()
+
+for a in ax0,ax1,ax2:
+    a.legend( loc="right" )
+
+    #+END_SRC
+    #+RESULTS:
+    :RESULTS:
+    [[file:images/client-holdings.png]]
+    :END:
+    #+LATEX: }
