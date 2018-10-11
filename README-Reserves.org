@@ -583,7 +583,7 @@ for curr in currencies:
       - The hApp manager warns the owner of significant changes in hosting costs, so they can adjust
         their preferred cost settings.
 
-*** Simulation of Client, hApp, Host and Reserve Interaction
+*** Variables Affecting Client, hApp, Host and Reserve Interaction
 
     We will simulate a tranche of Hosts selling Holo hosting by the hour.  A certain amount of Holo
     fuel is defined as purchasing a defined basket of the median Holo computational commodities and
@@ -646,12 +646,12 @@ for curr in currencies:
      critical to the uptake of Holo fuel, and capping the fees at ~USD$0.01 (1 cent) the Holo fuel
      equivalent of < ~USD$10.00 purchases will be acceptable, and will cover the vast majority of
      transactions.  The only transactions that will produce reduced Holo system fees are those
-     between ~USD$1.00 and USD$10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.
+     between ~USD$1.00-10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.
      These transactions are in the gray area where existing Cryptocurrencies have similar fees on
      this scale of transactions; this cap would establish Holo fuel as a clear winner against
      existing Cryptocurrencies, and every Fiat currency payment processing system.
 
-     Transactions between ~USD$10.00 and ~USD$1,000 are the bulk of normal consumer retail
+     Transactions between ~USD$10-$10,000.00 are the bulk of normal consumer retail
      transactions.  Most importantly, these are the short-term savings stock and day-to-day retail
      flow of money; by far the largest pool of savings and monetary velocity.
 
@@ -664,20 +664,22 @@ for curr in currencies:
      Fiat systems.  For Holo fuel, consumers would not be happy paying a USD$10 direct fee (1%) on a
      USD$1,000 bicycle, or an extra USD$100 on a used car purchase, and it materially would affect
      usage of Holo fuel for general retail purchases of all sizes.  By limiting the fees at .1% on
-     USD$10-$1,000 (fee of USD$0.10), and capping USD$1,000-10,000 to a max. USD$1.00 fee, the fee
-     ceases to be a negative psychological factor in these purchases.
+     USD$10-$1,000 (fees of USD$0.01-$1.00), and capping USD$1,000-$10,000 to a max. USD$1.00 fee,
+     the fee ceases to be a negative psychological factor in these purchases; Holo fuel will be the
+     lowest cost option available for retail level savings and transactions.
      
-     The loses due to this fee/cap are likely to be negligable, since Holo fuel would not have been
+     The losses due to this fee/cap are likely to be negligible, since Holo fuel would not have been
      competitive for these transactions anyway, and would not likely have been used.  Now, Holo
      gains additional revenue that it would not have otherwise earned, even though the rate is lower
      than for micro/small transactions.
 
      For large transactions, once again cryptocurrency excels.  However, businesses would likely
      find a .1% fee on *all* their earnings significant; A business that earns USD$1,000,000/yr
-     would bear an additional USD$1,000 expense due to accepting Holo fuel.  This would be noticable
-     to accountants and business owners, and would affect uptake negatively.  By limiting this to
-     USD$1,000 on large transactions (roughly the cost in annual fees for a business bank account),
-     this would ameliorate any objections to Holo fuel uptake at the boardroom level.  Once again, a
+     would bear an additional USD$1,000 expense due to accepting Holo fuel.  This would be
+     noticeable to accountants and business owners, and would affect uptake negatively.  By limiting
+     this to .01% and capping fees at USD$1,000, the fees on USD$10,000-10,000,000 would be
+     USD$1-1,000 on large transactions; roughly the cost in annual fees for a business bank account.
+     This would ameliorate any objections to Holo fuel uptake at the boardroom level.  Once again, a
      1% or .1% fee would be a non-starter, so any losses in fee income to Holo are imaginary.
 
      Finally, since Holo fuel and the Holo Reserve ecosystem need to be able to identify accounts
@@ -699,23 +701,30 @@ for curr in currencies:
 **** Units circulating
 
      Currency units available to buy/sell in trades define the value of the currency, in terms of
-     external benchmarks.
+     external benchmarks.  This is the sum of all units created by all credit lines (including the
+     initial 177e9 HOT issued by Holo, plus all Reserves and other credit lines), minus the units
+     kept in savings (positive balances and un-deployed credit lines).  Units of Holo fuel are
+     circulated in trade for goods and services, on various Exchanges, etc..  Some holders of these
+     units will be seeking to trade them on various Reserves.
 
      If there are 1M units of currency available on the market at an "ask" price of USD$1, and
      ~USD$1M of trade into the currency to execute, exactly 1M of units will be purchased by
      potential trade buyers, exchanged for the USD$1M of goods; the unit value of the currency is in
      equilibrium at an exchange rate of USD$1/unit.  On the other hand, if there are 1010101 units
      of currency available at an "ask" of USD$0.99, and 1 unit available at an "ask" of USD$1.00,
-     then the trade buyer would purchase the 1010101 units to satisfy their trade requirements,
+     then the trade buyer would purchase the 1010101 units to satisfy their USD$1M trade requirements,
      leaving the current "ask" price at USD$1.00; the currency is now in equilibrium at an exchange
      rate of USD$1.00/unit.
 
+**** Units Issued by Credit
+
      Until the value of Holo fuel nears its value-stability target, it makes no financial sense for
-     anyone to issue or use credit.  Only if you believe you can deploy the credit at a rate of
-     return greater than the future deflation rate of the currency, you are going to lose money on
-     the investment.  This is the obverse of the coin all Fiat currency holders are dealt: under
-     inflation, it makes no sense to save in units of the currency, unless you know you can deploy
-     the currency (eg. deposit at interest) at a rate of return the exceeds the inflation rate.
+     anyone to issue or use credit.  Unless you believe you can *deploy* the credit at a rate of
+     return greater than the expected future deflation rate of the currency, you are going to lose
+     money on the investment.  This is the inverse of the card Fiat currency holders are usually
+     dealt: under inflation, it makes no sense to *save* in units of the currency, unless you know
+     you can deploy the currency (eg. deposit at interest) at a rate of return the exceeds the
+     inflation rate.
 
      So, until that point, while Holo fuel is floating and generally deflationary (trade in the
      currency is increasing over time), neither Holo (via Reserve issuance) nor the Hosts (via
@@ -757,26 +766,36 @@ for curr in currencies:
      haven for funds while seeking investment.  All of these scenarios remove units of currency from
      circulation, demanding issuance/withdrawal of credit to balance supply/demand for equilibrium
      valuation to be maintained.
-     
-**** Credit Extended
+
+**** Multiple Degrees of Freedom on Holo fuel Valuation
 
     Thus, there are 2 degrees of freedom that holders of Holo fuel need to mentally deal with, which
     are largely independent of eachother, and are influenced by separate factors.
 
     - The value of a unit of Holo fuel in compute resources (hours of computer time)
       - How much Holo fuel should I sell my Holo hosting services for?
-        - Defined by the market value of the underlying Holo computation system
+        - Defined by the market value of the underlying Holo computation system 
     - The price of a unit of Holo fuel in various Fiat currencies (eg. exchange rate to USD$)
       - What will I earn when I sell that fuel on the Reserves or other exchanges?
-
-**** Multiple Degrees of Freedom on Holo fuel Valuation
+        - Defined by what the market believes Holo fuel is "worth"; Utility + 
 
     Fixing the value-stability of Holo fuel is *independent* of the amount of compute resources the
     Host eventually redeems in Fiat currency; it doesn't matter if 1 month of compute resources is
     sold for 100 Holo fuel at a USD$1.00/Holofuel, or 10,000 Holo fuel at USD$0.01/Holofuel -- the
     Host earns USD$100 per month of compute.  The Holo fuel valuation in terms of compute resources
-    can be maintained at an arbitrary value by limiting the inflow of Holo fuel into the core Holo
-    ecosystem.
+    could be maintained at an arbitrary value by limiting the inflow of Holo fuel into the core Holo
+    ecosystem, without affecting the freedom of movement of its exchange rate with Fiat currencies.
+
+    Removing this one degree of freedom from the Holo fuel system does *not* restrict the market's
+    ability to price Holo hosting!  The market price (how many USD$ buys 1 Holo-month of hosting) is
+    arrived at by the market reaching equilibrium.  What everyone *does* now, however, is how much 1
+    Holo represents in terms of Holo hosting computational resources.  This allows Holo fuel to act
+    both as a medium of exchange (which does not require value stability), *and* as a value
+    reference (which *does* require stability in terms of some reference commodity basket.)  Both
+    are required for Holo fuel to be used as general "money".  Uncontrolled large short-term swings
+    in valuation will absolutely invalidate it for short-term retail savings/spending; the public
+    cannot risk their day-to-day money's value, and businesses cannot bear the cost of re-pricing
+    their inventory on a daily (or hourly) basis.
 
     Initially, Holo has guaranteed convertability 1-1 between HOT and Holo fuel.  Thus, there will
     be a large influx of HOT into the Holo system.  This will result in a potentially very large
@@ -837,13 +856,17 @@ for curr in currencies:
     monetized into Holo fuel credit; for example, houses, vehicles, monetary savings and
     non-monetary wealth owned unencumbered by liens or other restrictions.
 
-**** Modelling 
+*** Modelling Holo Fuel
 
-    in external Fiat currencies will float  We will not be doing that in this model; see [[https://github.com/pjkundert/holofuel-model/blob/master/README.pdf][Holo Fuel Currency System Design and
-    Modelling]] to see how value-stability in terms of a basket of commodities can be implemented.
+    In these models, our goal is to observe how Holo fuel Reserves respond to variations in Fiat
+    currency relative valuations, and to variations in how existing HOT ERC20 tokens are converted
+    to Holo fuel, and processed by varying scales of Holo Hosting and varying levels of "retail"
+    savings and transaction levels.
 
-    We
-    will fix the value of Holo fuel at 
+    We will not be controlling Holo fuel's value stability in this model; see [[https://github.com/pjkundert/holofuel-model/blob/master/README.pdf][Holo Fuel Currency
+    System Design and Modelling]] to see how value-stability in terms of a basket of commodities can
+    be implemented.  Holo fuel's value will float, both in terms of its value reference "basket" of
+    Holo computational commodities, and its exchange rate in Fiat currency.
 
     When prices rise (Client requests increase, Host load increases prices), eventually they will
     reach the Reserve agent sellers' ask price, derived from the Hosts' cash-out settings.  This
@@ -851,20 +874,18 @@ for curr in currencies:
     prices should cap out at Host cash-out price.  We can limit Reserve issuance and/or increase
     prices to allow further increase in Holo fuel price, but we won't do that in this model.
 
-    the commodity representing wall-clock duration of requests serviced by Holo Hosts.  Slower hosts
-    are priced cheaply, faster hosts are more expensive.  This is an aggregate of all types of
-    requests made to a hosted hApp, so represents the full spectrum of Host behaviours (requests
-    that are not satisfiable in a deterministic time should be excluded for the purposes of Host
-    characterization).  For example, a very fast host on a low-latency network but with slow disk
-    storage will be penalized vs. an identical host with SSDs, because its disk-intensive requests
-    will have a response time distribution with higher mean and standard deviation.  However, it may
-    offset this by pricing its 'storage' and 'bandwidth' commodities at a premium.  For the purposes
-    of the model, various Hosts will satisfy requests at various rates, but they will all be
-    considered to be in one pool.  Normally, a host that takes longer to process requests would
-    migrate to a lower performance pool, where its price would probably move it to the *premium*
-    price tranche in that performance band, reducing its request rate, and hence lowering its
-    income.
-
+    Slower hosts are priced cheaply, faster hosts are more expensive.  This is an aggregate of all
+    types of requests made to a hosted hApp, so represents the full spectrum of Host behaviours
+    (requests that are not satisfiable in a deterministic time should be excluded for the purposes
+    of Host characterization).  For example, a very fast host on a low-latency network but with slow
+    disk storage will be penalized vs. an identical host with SSDs, because its disk-intensive
+    requests will have a response time distribution with higher mean and standard deviation.
+    However, it may offset this by pricing its 'storage' and 'bandwidth' commodities at a premium.
+    For the purposes of the model, various Hosts will satisfy requests at various rates, but they
+    will all be considered to be in one pool.  Normally, a host that takes longer to process
+    requests would migrate to a lower performance pool, where its price would probably move it to
+    the *premium* price tranche in that performance band, reducing its request rate, and hence
+    lowering its income.
 
     Hosts may chose to sell fuel on the Reserve (which is also an exchange in this simulation) to
     whomever is buying at market rates, to maintain their monthly cost needs, or may hold onto fuel
