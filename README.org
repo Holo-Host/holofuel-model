@@ -266,20 +266,21 @@ our decisions both internally, and where appropriate, externally.
 
 ** The Computational Resources Basket
 
-   One Holo Fuel (HOT) is defined as being able to purchase 1 month of Holo Hosting services for the
-   front-end (ie. web API, databases, etc.) portion of a typical dApp.
+   One Hundred Holo Fuel (HOT) may be defined as being able to purchase 1 month of Holo Hosting services
+   for the front-end (ie. web API, databases, etc.) portion of a typical dApp.  There are about
+   730.5 hours a month, so 1 Holo fuel purchases about 7.3 hours of Holo hosting.
 
    This might be roughly equivalent to the 2018 price of (and actual utilization of) a small cloud
    hosting setup (eg. several $5/month Droplet on Digital Ocean at partial utilization hosting
    front-ends, DBs, backups, etc.), plus ancillary hosting services (represented by a premium for
    inclusion in the Holo system).
 
-   If the minimal Hosting costs for a small Web app is estimated at USD$100/mo., and comprises 5
-   cloud hosting nodes and anciliary services for the various aspects of the system.  An equivalent
-   Holo Host based system would have similar CPU and storage requirements overall, but a greater
-   redundancy (say, 5 x, so all DHTs spread across 25 Holo Hosts).
+   In other words, the minimal Hosting costs for a small Web app is estimated at USD$100/mo., and
+   comprises 5 cloud hosting nodes and anciliary services for the various aspects of the system.  An
+   equivalent Holo Host based system would have similar CPU and storage requirements overall, but a
+   greater redundancy (say, 5 x, so all DHTs spread across 25 Holo Hosts).
 
-   Thus, the basket of commodities defining the value of USD$100 =~= 100 Holo Fuel could be defined as:
+   The basket of commodities defining the value of USD$100 =~= 100 Holo Fuel could be defined as:
 
    #+LATEX: {\scriptsize
    #+BEGIN_SRC ipython :session :exports both :results raw drawer

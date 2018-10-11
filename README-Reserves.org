@@ -3,25 +3,143 @@
 #+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
 #+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
 
-
 \begin{abstract}
 
 The Holo Reserves are a primary method of purchasing Holo Fuel for Hosting services, and is
-available for Hosts only to redeem Holo Fuel for cash in various currencies.  Others Holo Fuel
-account holders may buy via the Reserves, and and buy/sell via other exchanges, but the reserve's LIFO
-tranches are available to Holo Fuel accounts associated with known Holo Hosts.
+available for Hosts only to redeem Holo Fuel for cash in various currencies.  Other Holo Fuel
+account holders may buy via the Reserves, and may buy/sell via other exchanges, but the Reserve's
+LIFO tranches are available only to Holo Fuel accounts associated with known Holo Hosts, and only
+for Holo fuel earned for hosting services.
 
-Holo Fuel credits redeemable for Hosting are purchased at a certain cost, and later redeemed
-for that cost by Hosts after these services are delivered.  Therefore, the purchase price must
-be palatable for redemption by at least some Hosts.  Of course, Holo dApp Owners are free to
-purchase Holo Fuel on exchanges at lower prices, and Hosts can cash out via exchanges at
+Holo Fuel credits redeemable on Reserves for Hosting are purchased at a certain cost, and later redeemed
+for that same amount by Hosts after these services are delivered.  Therefore, the purchase price must
+be palatable for redemption later by at least some Hosts.  Of course, Holo dApp Owners are free to
+purchase Holo Fuel on exchanges at lower prices, and Hosts can also cash out via exchanges at
 market prices.
 
-The Holo Fuel / currency sale price is also controlled to adjust net currency in/outflows, both to
+The Holo Fuel to currency sale price is also controlled to adjust net currency in/outflows, both to
 adjust for changes in relative currency valuation, and to balance the proportion of Reserves in
 each currency to match the desired Host cash-out currencies.
 
+Models are proposed to implement a sound foundation of wealth in terms of Holo Hosting services,
+savings balances, and healthy monetary velocity in trade transactions for goods and services.  Early
+steady deflation (increase in Holo fuel unit value in real terms) will be managed as the scale and
+velocity of the Holo fuel economy increases, leading ultimately to an engineered equilibrium value
+stability plateau where Holo fuel becomes extremely useful as general "money".
+
 \end{abstract}
+
+* Holo fuel: Sound Money
+
+  The intended utilisation of Holo fuel as money to trade in goods and services (Holo Hosting, etc.)
+  requires that it have at least the features required of a [[https://en.wikipedia.org/wiki/Medium_of_exchange][Medium of Exchange]].  Eventually, after
+  an initial period of price discovery and growth, it must also become a Measure/Store of Value.
+
+** Medium of Exchange
+
+  Holo fuel inherits many of these required features from its Holochain and Mutual Credit foundations.
+
+  - Valuation vs. common assets
+  - Common and accessible
+  - Constant utility
+  - Low cost of preservation
+  - Transportability
+  - Divisibility
+  - High market value in relation to volume and weight
+  - Recognisability
+  - Resistance to counterfeiting
+    
+  During the initial price discovery phase, the existing pool of 177e9 HOT ERC20 tokens will
+  establish an equilibrium supply/demand price vs. other Cryptocurrencies supplying similar utility.
+  We expect a period of neutrality or inflation (lowering valuation) as savers/sellers (initial
+  investors and HODLers, Holo Hosts) seek equilibrium of Holo fuel supply with spenders/buyers (Holo
+  dApp owners, other accumulating savers, and a small proportion of monetary trade users).
+
+  As the superior utility of Holochain based Mutual Credit currencies is established vs. existing
+  Cryptocurrency offerings (vastly superior scalability, ease of use and security), a period of
+  deflation (increasing value) is expected.  Increases in value are moderated by increasing selling
+  (profit-taking) by early investors.  However, a target valuation for value-stability begins to
+  form, in preparation for the long-term primary utilization of Holo fuel as general "money".
+
+** Measure and Store of Value
+
+  To serve as a measure/store of value, a medium of exchange, be it a good or signal, needs to have
+  constant inherent value of its own or it must be firmly linked to a definite basket of goods and
+  services.  It should have constant intrinsic value and stable purchasing power; otherwise, it will
+  be chased out of the market by "worse" money: all else being equal, people will generally choose
+  to *save* units of money that retain or increase in value (neutral/deflationary), and will *spend*
+  money that declines in value (inflationary).
+
+  Long-term monetary value stability in a dynamic economy of mutual-credit currencies requires the
+  extension and spending (and potentially later retraction/repayment) of credit lines (similar to
+  "minting" and "burning" in a token currency).  Increasing savings or monetary velocity demands
+  increases in the money supply to avoid deflation; spending of savings or a reduction in economic
+  trade activities requires reduction of the money supply.  This is accomplished by offering credit
+  lines and/or incentivizing their usage, and later withdrawing credit lines and/or incentivizing
+  their repayment.
+
+  Credit extended in terms of money that increases in unit value (deflation) becomes harder to pay
+  back over time, so it is unlikely (and unhealthy) for people to deploy credit lines unless it is
+  both expected and *highly* likely that deflation will only persist for a short term before
+  recovery.  Conversely, money that loses value (inflation) is not useful for savings, and
+  persistent (or expected) inflation will cause people to transfer their savings to more sound
+  money.
+
+*** Controlled Withdrawal of Supply To Counter Inflation
+
+    Large-scale withdrawal of units of money that are not backed by actual wealth leads to a crash of
+    the monetary system; there is no mechanism for a stable "unwinding" of non wealth-backed money.
+    As units sold exhaust buy orders, prices drop as demand for the money is satisfied.  Existing
+    credit lines can be reduced, and/or deployed credit lines repaid with the inflated (lower priced)
+    units of currency (on the assumption that unit values will be restored to "normal").  As inflation
+    persists, feedback control loops continue to restrict credit lines until unit prices respond to
+    the tightening supply, which is being soaked up by creditors paying back their lines at discounted
+    current unit rates.
+    
+    But, what if credit lines are exhausted before the currency responds; demand is simply lower than
+    the amount of units in circulation available for sale?  The 177e9 HOT minted are convertible
+    1-to-1 into Holo fuel, and if the amount selling exceeds demand for Holo services and general
+    trade, there is no lower bound on its per-unit valuation vs. currencies w/ similar utility.
+    Without the ability to effectively limit supply to existing demand, prices will collapse.  The
+    larger the uncontrolled supply vs. the controllable supply issued via credit, the greater the
+    probability is of exhausting available credit withdrawal capacity.
+    
+    How can we reduce the relative size of the uncontrolled, "minted" supply in circulation?
+
+**** Increasing the size of the Holo fuel economy
+
+     The obvious way is to dramatically increase the scale of the economy.  Long term savings is
+     restricted to a relatively small portion of the economy -- those choosing to save disposable
+     wealth in the form of Cryptocurrency.
+     
+     The *much* larger short-term savings and spending economy is closed off to any currency that
+     has high volatility -- is not strongly value-stable.  A strongly value-stable currency that
+     doesn't have the fee and scale barriers of existing Cryptocurrencies would be very attractive.
+     The bulk of the global population labours under spectacularly onerous regimes (pay-day loans,
+     high-fee mobile-phone company currencies, etc.), and there are *trillions* of dollars actively
+     seeking a new home in the short-term and daily spending market.
+
+     The determining factors limiting uptake are:
+     - Strong value stability
+     - Low fees in the range of retail transactions (USD$10-10,000)
+     - Extremely secure/resilient key revocation and recovery (community based)
+
+**** Directly Reducing Non-Wealth-Backed "minted" Units
+
+     Like a share buy-back scheme, a proportion of the Holo fuel transaction fees should redeem the
+     Holo fuel units initially issued by the Holo organization to raise initial capital.  This,
+     strangely, depends on [[Increasing the size of the Holo fuel economy]] -- without dramatically
+     increasing the monetary velocity of Holo fuel, to (at least) on the order of some multiples of
+     the total outstanding stock of non-wealth-backed Holo fuel per year, the transaction fees will
+     be inadequate to make a dent in the originally issued ERC20 token based Holo fuel.
+
+     As with taxes, raising fees may actually lower fee income.  This is the effect, I believe, of a
+     blanket 1% fee structure -- it makes micro-transactions extremely compelling vs. any competing
+     platform, but completely eliminates Holo fuel from consideration in that *vastly* larger retail
+     savings and transaction pool.  In my opinion, .1% of a Trillion USD$ retail market is much
+     better than 1% of ... no part of that market.
+
+     [[Fees][Fees]] are discussed below.
 
 * Host Currency Preference and Minimum Cash-Out Value
 
@@ -57,7 +175,10 @@ import json
 import bisect
 import logging
 import time
-logging.basicConfig( level=logging.DEBUG )
+
+import scipy # stats.zscore, stats.norm.cdf, ...
+
+#logging.basicConfig( level=logging.DEBUG )
 
 from holofuel.model import trading
 from holofuel.model.reserve_lifo import reserve, reserve_issuing
@@ -66,18 +187,19 @@ def rnd_std_dst( sigma, mean=0, minimum=None, maximum=None ):
     """Random values with mean, in a standard distribution w/ sigma, clipped to given minimum/maximum."""
     val             = sigma * np.random.randn() + mean
     return val if minimum is None and maximum is None else np.clip( val, a_min=minimum, a_max=maximum )
-# 
-# Compute target currencies, with random distribution of desirabilites (totalling 1.0)
-# 
-currencies			= [ 'USD', 'EUR', 'CAD', 'CNY', 'RUB', 'TRY', 'HOT' ]
-desi_mean,desi_sigma		= 1,    .66	# desirability weighting of various currencies
-desirability			= [ rnd_std_dst( mean=desi_mean, sigma=desi_sigma, minimum=3*len(currencies)/100 ) # ~3% minimum
-                                    for _ in range( len( currencies )) ]
-desirability		       /= np.sum( desirability ) # normalize sum of probabilites to 1.0
 
-explode                 	= [ .1 if c == 'HOT' else 0 for c in currencies ]
+# 
+# Compute target cu``rrencies, with random distribution of desirabilites (totalling 1.0)
+# 
+currencies                      = [ 'USD', 'EUR', 'CAD', 'CNY', 'RUB', 'TRY', 'HOT' ]
+desi_mean,desi_sigma            = 1,    .66     # desirability weighting of various currencies
+desirability                    = [ rnd_std_dst( mean=desi_mean, sigma=desi_sigma, minimum=3*len(currencies)/100 ) # ~3% minimum
+                                    for _ in range( len( currencies )) ]
+desirability                   /= np.sum( desirability ) # normalize sum of probabilites to 1.0
+
+explode                         = [ .1 if c == 'HOT' else 0 for c in currencies ]
 #with plt.xkcd():
-fig1,ax1                	= plt.subplots()
+fig1,ax1                        = plt.subplots()
 ax1.pie( desirability, explode=explode, labels=currencies, autopct='%.1f%%', shadow=True, startangle=90 )
 ax1.axis( 'equal' ) # Equal aspect ratio ensures that pie is drawn as a circle.
 plt.title( "Relative Currency Desirability" )
@@ -109,11 +231,11 @@ plt.show()
 # 
 class Rates( object ):
     def __init__( self, fx_rates ):
-        rates_data		= json.loads( open( fx_rates ).read() )
-	self.rates		= {}
+        rates_data              = json.loads( open( fx_rates ).read() )
+        self.rates              = {}
         for rec in rates_data['observations']: 
             d = self.rates[rec["d"]] \
-				= {}
+                                = {}
             for c1 in currencies:
                 if c1 != 'CAD' and 'FX'+c1+'CAD' not in rec:
                     continue
@@ -123,23 +245,23 @@ class Rates( object ):
                     tocad       = 1 if c1 == 'CAD' else rec['FX'+c1+'CAD']['v'] # eg. FXUSDCAD: 1.3
                     frcad       = 1 if c2 == 'CAD' else rec['FX'+c2+'CAD']['v'] # eg. FXEURCAD: 1.47
                     d[c1+'/'+c2]= tocad / frcad                                 # ==>  USD/EUR: 0.884
-	self.days		= sorted( self.rates.keys() )
+        self.days               = sorted( self.rates.keys() )
         #print( json.dumps( rates[self.days[0]], indent=4 ))
 
     def exchange( self, day, fr, to ): # "2017-01-17", 'EUR', 'USD'
         """Finds the exchange rate for a day near to the given YYYY-MM-DD"""
         if fr == to:
             return 1.0
-        i			= bisect.bisect_left( self.days, day )
+        i                       = bisect.bisect_left( self.days, day )
         if i >= len( self.days ):
-            i		       -= 1
+            i                  -= 1
         #print( json.dumps( self.rates[self.days[i]], indent=4 ))
         try:
             return self.rates[self.days[i]][fr+'/'+to]
         except:
             return math.nan
 
-rates				= Rates( "static/data/FX_RATES_DAILY-sd-2017-01-03.json" )
+rates                           = Rates( "static/data/FX_RATES_DAILY-sd-2017-01-03.json" )
 
 [ [ 'Day', 'From', 'To', 'Exchange' ],  None ] \
 + [ [ d, fr, to, "%5.3f" % ( rates.exchange( d, fr, to ) ) ]
@@ -172,76 +294,76 @@ rates				= Rates( "static/data/FX_RATES_DAILY-sd-2017-01-03.json" )
 
 class Host( trading.agent ):
     def __init__( self, redemption,
-	    quanta = 1 * trading.hour,
-	    **kwds ):
+            quanta = 1 * trading.hour,
+            **kwds ):
         """Support 0 or 1 specified exchange rate, deducing all others.  Filter out currencies not desired
-	(target rate is Falsey). 
+        (target rate is Falsey). 
 
-	redemption: {
-	    "CAD": .50,
-	    "USD": True,
-	    "CNY": False, # Filtered out
-	    "EUR": True,
-	    "HOT": True
-	}
+        redemption: {
+            "CAD": .50,
+            "USD": True,
+            "CNY": False, # Filtered out
+            "EUR": True,
+            "HOT": True
+        }
 
         """
-	super( Host, self ).__init__( quanta=quanta, **kwds )
-        self.redemption		= { c: redemption[c]
-	                            for c in redemption
-				    if redemption[c] }
+        super( Host, self ).__init__( quanta=quanta, **kwds )
+        self.redemption         = { c: redemption[c]
+                                    for c in redemption
+                                    if redemption[c] }
 
-	assert 0 <= sum( type( r ) in (int,float) for c,r in self.redemption.items() ) <= 1, \
-	    "A maximum of one target redemption is allowed; %s supplied" % (
-	        ', '.join( '%s: %f' % ( c, r )
-			   for c,r in self.redemption.items()
+        assert 0 <= sum( type( r ) in (int,float) for c,r in self.redemption.items() ) <= 1, \
+            "A maximum of one target redemption is allowed; %s supplied" % (
+                ', '.join( '%s: %f' % ( c, r )
+                           for c,r in self.redemption.items()
                            if type( r ) in (int,float) ))
 
     def redemption_rate( self, day, curr ):
         """Computes the target redemption rate in the specified currency, or Falsey (0/None/False) if not
-	desired.  If a currency is desired, but no minimum cash-out rate is specified (indicating
-	that "market" rates are desired), returns True."""
-	if curr not in self.redemption:
-	    return False
-	if curr == 'HOT':
-	    return 1.0
-	# find a specified currency w/ a minimum rate specified
-	for curr_exch,rate_min in self.redemption.items():
-	    if type( rate_min ) is not bool: # could be int,float, a numpy type
-	        # An exchange rate minimum was specified!  Compute the target currency's rate vs. that
-	        # rate using that day's (in "YYYY-MM-DD") exchange rate.  For example, if the exch ==
-	        # 'USD' and the target is (say) rate == 0.50, and we're asking for 'CAD' and the day's
-	        # exchange rate is 1.29, we'll return 0.50 * 1.20 == 0.645
-	        rate_exch		= rates.exchange( day, fr=curr_exch, to=curr )
-	        rate_redeem		= rate_min * rate_exch
-	        if math.isnan( rate_exch ) or math.isnan( rate_redeem ):
-	            print( "For %s on %s, minimum: %s, %s/%s exchange rate: %s" % (
-	                curr, day, rate_min, curr_exch, curr, rate_exch ))
-	        return rate_redeem
-	# No target currency w/ minimum rate: "market" rates are desired
-	return True
+        desired.  If a currency is desired, but no minimum cash-out rate is specified (indicating
+        that "market" rates are desired), returns True."""
+        if curr not in self.redemption:
+            return False
+        if curr == 'HOT':
+            return 1.0
+        # find a specified currency w/ a minimum rate specified
+        for curr_exch,rate_min in self.redemption.items():
+            if type( rate_min ) is not bool: # could be int,float, a numpy type
+                # An exchange rate minimum was specified!  Compute the target currency's rate vs. that
+                # rate using that day's (in "YYYY-MM-DD") exchange rate.  For example, if the exch ==
+                # 'USD' and the target is (say) rate == 0.50, and we're asking for 'CAD' and the day's
+                # exchange rate is 1.29, we'll return 0.50 * 1.20 == 0.645
+                rate_exch               = rates.exchange( day, fr=curr_exch, to=curr )
+                rate_redeem             = rate_min * rate_exch
+                if math.isnan( rate_exch ) or math.isnan( rate_redeem ):
+                    print( "For %s on %s, minimum: %s, %s/%s exchange rate: %s" % (
+                        curr, day, rate_min, curr_exch, curr, rate_exch ))
+                return rate_redeem
+        # No target currency w/ minimum rate: "market" rates are desired
+        return True
 # 
 # Compute a number of Host w/ varying numbers of desired currencies and target exchange rates
 # 
-host_count			= 100
-rate_mean,rate_sigma		= 0.50, 0.25	# variance in minimum rates of exchange (CAD)
+host_count                      = 25
+rate_mean,rate_sigma            = 0.50, 0.25    # variance in minimum rates of exchange (CAD)
 curr_mean,curr_sigma            = 3,    2       # number of currencies selected
-hosts				= []
+hosts                           = []
 
 for h in range( host_count ):
     # select between 0 and all currencies as candidates for redemption, with the random choice of each
     # currency weighted by its relative desirability
     curr_cnt                    = max( 0, min( len( currencies ), int( rnd_std_dst( mean=curr_mean, sigma=curr_sigma ))))
-    redemption		        = { curr: True 
+    redemption                  = { curr: True 
                                     for curr in np.random.choice( a=currencies, size=curr_cnt, replace=False, p=desirability ) }
     # Choose an exchange rate for one Fiat currency (in CAD$ terms) 
     fiat                        = set( redemption ) - set( [ 'HOT' ] )
-    rate_num			= 1
-    rate_cad			= rnd_std_dst( mean=rate_mean, sigma=rate_sigma, minimum=0 ) # may be 0 ==> no desired rate ("market")
+    rate_num                    = 1
+    rate_cad                    = rnd_std_dst( mean=rate_mean, sigma=rate_sigma, minimum=0 ) # may be 0 ==> no desired rate ("market")
 
     if fiat and rate_cad:
         for curr in np.random.choice( a=list( fiat ), size=min( rate_num, len( fiat )), replace=False ):
-            redemption[curr]	= rate_cad * rates.exchange( rates.days[0], 'CAD', curr )
+            redemption[curr]    = rate_cad * rates.exchange( rates.days[0], 'CAD', curr )
     hosts.append( Host( identity = "Host{}".format( h ), redemption = redemption ))
     #print( "CAD exch: %6.4f, target Fiat %r == %r %s" % (
     #    rate_cad, fiat, hosts[-1].redemption, "" if rate_cad else "==> market rates" ))
@@ -255,26 +377,26 @@ def currency_statistics( hosts, day, curr ):
     distribution of their cash-out minimum.
 
     """
-    curr_stats			= {}
+    curr_stats                  = {}
     # Ignore bad, Falsey (False/0 == not desired), or -'ve (invalid) exchange rates
-    sel				= []
+    sel                         = []
     for h in hosts:
-        r			= h.redemption_rate( day, curr )
-	if not math.isnan( r ) and r and r > 0:
-	    sel.append( r )
+        r                       = h.redemption_rate( day, curr )
+        if not math.isnan( r ) and r and r > 0:
+            sel.append( r )
     if not sel:
         return curr_stats # leave empty (Falsey) if no cash-out currencies selected
-    curr_stats['selected']	= sel # contains desired exch. rate, or True (for "market")
-    curr_stats['minimums']	= sorted( x for x in sel if type( x ) is not bool )
-    mins_cnt			= len( curr_stats['minimums'] )
-    curr_stats['median']	= curr_stats['minimums'][mins_cnt // 2] if mins_cnt else None
-    curr_stats['mean']		= np.mean( curr_stats['minimums'] ) if mins_cnt else None
-    curr_stats['sd']		= np.std( curr_stats['minimums'] ) if mins_cnt else None
+    curr_stats['selected']      = sel # contains desired exch. rate, or True (for "market")
+    curr_stats['minimums']      = sorted( x for x in sel if type( x ) is not bool )
+    mins_cnt                    = len( curr_stats['minimums'] )
+    curr_stats['median']        = curr_stats['minimums'][mins_cnt // 2] if mins_cnt else None
+    curr_stats['mean']          = np.mean( curr_stats['minimums'] ) if mins_cnt else None
+    curr_stats['sd']            = np.std( curr_stats['minimums'] ) if mins_cnt else None
     return curr_stats
 
-stats				= {}
+stats                           = {}
 for curr in currencies:
-    stats[curr]			= currency_statistics( hosts, rates.days[0], curr )
+    stats[curr]                 = currency_statistics( hosts, rates.days[0], curr )
     #print( curr + ': ' + ', '.join( "%7.4f" % r for r in stats[curr]['minimums'] ))
 
 [ [ '', '', '%r/ea +/-%r' % ( curr_mean, curr_sigma ), 'Rate' ],
@@ -294,13 +416,13 @@ for curr in currencies:
   |          |          |  3/ea +/-2 |    Rate |         |         |
   | Currency | % Weight | % Selected |    Mean |  Median | Std.Dev |
   |----------+----------+------------+---------+---------+---------|
-  | USD      |     10.9 |       27.0 |  0.3557 |  0.3435 |  0.1477 |
-  | EUR      |     28.8 |       56.0 |  0.3573 |  0.3800 |  0.1521 |
-  | CAD      |      6.3 |       23.0 |  0.4665 |  0.4615 |  0.2005 |
-  | CNY      |      3.3 |        9.0 |  2.2201 |  2.3354 |  1.0113 |
-  | RUB      |     21.2 |       52.0 | 23.3352 | 24.2728 |  8.9355 |
-  | TRY      |     22.6 |       51.0 |  1.3524 |  1.3577 |  0.5907 |
-  | HOT      |      6.9 |       22.0 |  1.0000 |  1.0000 |  0.0000 |
+  | USD      |     14.5 |       28.0 |  0.3639 |  0.3947 |  0.1832 |
+  | EUR      |     18.2 |       52.0 |  0.3643 |  0.3334 |  0.1982 |
+  | CAD      |     11.9 |       40.0 |  0.6072 |  0.6209 |  0.1999 |
+  | CNY      |     23.4 |       44.0 |  2.3583 |  2.2716 |  1.2543 |
+  | RUB      |      5.2 |       28.0 | 17.4500 | 19.9817 |  7.6965 |
+  | TRY      |      4.3 |        8.0 |  1.3243 |  1.4690 |  0.1448 |
+  | HOT      |     22.5 |       24.0 |  1.0000 |  1.0000 |  0.0000 |
   :END:
   #+LATEX: }
 
@@ -322,15 +444,22 @@ for curr in currencies:
    allow the auto-pilot to be used to adjust utilization more promptly.
 
    To support real-time utilization modulation, for example increasing the price of Network
-   bandwidth to reduce utilization when the owner is using a streaming video services like Netflix.
-   This would also require the Holo system supporting the hApp to poll its Host resources for
+   bandwidth to reduce utilization when the owner is using a streaming video services like Netflix,
+   would also require the Holo system supporting the hApp to poll its Host resources for
    pricing more rapidly; at the Nyquist rate; 2x the frequency of change of the signal.
+
+   Each Host sets its own pricing using its own resource utilization PID loop.  These new prices
+   must be scanned from public DHT entries at 2x the rate at which the Holo system wishes to respond
+   to Host rate changes.  Previous Host resource pricing persists until it is scanned and
+   re-tranched w/ its new pricing.  A cycle of minutes may not be inappropriate for this, and may
+   also be considered part of the Host "liveness" testing.
 
 *** Increasing hApp Hosting Prices Attracts New Hosts
 
     As a Host wishing to maximize revenue per unit of Compute, I want to host hApps that pay well.
-    Each Holo hApp knows what its median and average hosting prices has been across all resources,
-    and this information is published.
+    Each Holo hApp knows what its median and average hosting utilization and prices have been across
+    all resources, and this information is published; both facts are necessary to intelligently
+    select hApps that fit the desired resource and income profile of the Host.
 
     Hosts will survey the hApps available from time to time, disabling and eventually ejecting
     low-paying (probably over-provisioned) hApps in favour of higher-paying (possibly
@@ -362,8 +491,8 @@ for curr in currencies:
     
 ** Modelling Holo hApp/Host Auto-pilot Pricing
 
-   The goal of Holo hApp and Host Auto-pilot pricing is to allow both hApp owners and Hosts achieve
-   equilibrium pricing within a budget they can afford.
+   The goal of Holo hApp and Host Auto-pilot pricing is to allow both hApp owners and Hosts to
+   achieve equilibrium pricing within a budget they can afford.
 
    Holo hApp owners have clients to serve, and require Host resources within a certain budget.
    Hosts have resources to sell, and want to make the most money by hosting the hApps paying the
@@ -387,7 +516,7 @@ for curr in currencies:
     of the actual request performance and current Host pricing.  The mix of Hosts used to service
     requests is adjusted dynamically based on the hApp owner's current Hosting cost targets; a hApp
     currently targeting below-market *discount* Hosting costs will get a mixture of Hosts averaging
-    that lower target cost (ie. less *premium* priced Hosts, more *discount* and *market* priced
+    that lower target cost (ie. few *premium* priced Hosts, more *discount* and *market* priced
     Hosts.)
 
     Each set of tranches is an N-dimensional grid of buckets, with axes denominated in the various
@@ -400,23 +529,24 @@ for curr in currencies:
     #+NAME: Standard Deviation
     [[./images/normal-distribution-large.png]]
 
-
     The 5 buckets on the "performance" axis contain Hosts which fall in the standard deviation
-    groups $<-1\sigma$ (lolo 15%), $<0\sigma$ (lo 35%), $>0\sigma$ (hi 35%) and $>+1\sigma$ (hihi
-    15%) of the median response time.  The 3 buckets on the Holo Host "pricing" axis, *discount*
-    ($-2\sigma$ - $-.5\sigma$, lo 29%), *market* ($-.5\sigma$ - $+.5\sigma$, mid 38%) and *premium*
-    ($+.5\sigma$ - $+2\sigma$, hi 29%) are selected by each Hosts' dynamically adjusted pricing. The
-    lowest performing $<-2\sigma$ (*bulk* 2%) are not used for serving real-time requests, until
-    their response times to bulk requests moves them out of the lolo group.  The *peak* nodes can be
-    reserved for the most performance sensitive requests (eg. CDN like activities).
+    groups vs. the median response time.  The 5 buckets on the Holo Host "pricing" axis are selected
+    by each Hosts' dynamically adjusted pricing.  The lowest performing $<-2\sigma$ (*bulk* 2%) are
+    not used for serving real-time requests, until their response times to bulk requests moves them
+    out of the =lo lo= group.  The 2% *peak* nodes can be reserved for the most performance sensitive
+    requests (eg. CDN like activities).  The lowest priced 2% of Hosts are reserved for qualifying
+    "charity" hApps (eg. Wikipedia-likes, etc.), and the highest priced 2% of Hosts are eliminated
+    from consideration; these Hosts would skew the pricing to wildly to include in the tranche
+    (eg. manually-priced Hosts demanding USD$1m per unit of resources)
 
- | Performance >> | 2% bulk          | 28% slow                 | 40% median                | 28% fast                 | 2% peak     |
- | v Price v      | $<-2\sigma$      | $-2\sigma$ - $-.5\sigma$ | $-.5\sigma$ - $+.5\sigma$ | $+.5\sigma$ - $+2\sigma$ | $>+2\sigma$ |
- |----------------+------------------+--------------------------+---------------------------+--------------------------+-------------|
- | discount       | "background"     | some requests            | most requests             | some requests            | CDN, web    |
- | market         | API requests     |                          | fewer requests            |                          | proxies,    |
- | premium        | (none; ignored?) | very few                 | yet fewer request         | very few                 | relay, etc. |
- |                |                  |                          |                           |                          |             |
+ | Performance >> |                           | 2% bulk          | 28% slow                 | 40% median                | 28% fast                 | 2% peak     |
+ | v Price v      | Std.Dev.                  | $<-2\sigma$      | $-2\sigma$ - $-.5\sigma$ | $-.5\sigma$ - $+.5\sigma$ | $+.5\sigma$ - $+2\sigma$ | $>+2\sigma$ |
+ |----------------+---------------------------+------------------+--------------------------+---------------------------+--------------------------+-------------|
+ | 2% free        | $<-2\sigma$               | ?                |                          |                           |                          |             |
+ | 28% discount   | $-2\sigma$ - $-.5\sigma$  | "background"     | some requests            | most requests             | some requests            | CDN, web    |
+ | 40% market     | $-.5\sigma$ - $+.5\sigma$ | API requests     |                          | some requests             |                          | proxies,    |
+ | 28% premium    | $+.5\sigma$ - $+2\sigma$  | (none; ignored?) | very few                 | few request               | very few                 | relay, etc. |
+ | 2% over        | $>+2\sigma$               | ?                |                          |                           |                          |             |
 
     This arrangement leads to a cooperative feedback loop, allowing both Holo hApps and Hosts to
     dynamically adjust their pricing:
@@ -444,18 +574,283 @@ for curr in currencies:
       - Each service response carries the total used Hosts wall-clock duration (units of Holo) and
         CPU seconds, plus the total (hourly exponential moving average) Storage, RAM and Network
         utilization and total wall-clock duration of requests served. This allows us to assign a fraction of
-	the total hApp resource utilization to this request, and deduce a price
+        the total hApp resource utilization to this request, and deduce a price
       - The cost tranche boundaries are recomputed from the latest set of new Host pricing data
         collected from ongoing DHT scans of all Hosts, and the Hosts are distributed into their new
         tranches on the cost axis.
     - Prices paid per avg. request increase as Hosts move to higher cost tranches, and/or the standard
       deviation "boundaries" change and the average price in the target tranches increases.
       - The hApp manager warns the owner of significant changes in hosting costs, so they can adjust
-	their preferred cost settings.
+        their preferred cost settings.
 
 *** Simulation of Client, hApp, Host and Reserve Interaction
 
-    We will simulate a set of tranches of Hosts over a single commodity, 'holo' hosting.  This is
+    We will simulate a tranche of Hosts selling Holo hosting by the hour.  A certain amount of Holo
+    fuel is defined as purchasing a defined basket of the median Holo computational commodities and
+    capabilities required to host a small hApp for 1 month.
+
+    The value of Holo fuel in terms of both its defined commodity basket, and its exchange rate to
+    other currencies is going to float to begin with.  In addition, its USD$/fuel bid/ask on the
+    Reserve will also fluctuate, within bounds set by the Hosts in the cash-out prices and
+    preferences.
+
+    So, what determines the value of a unit of Holo fuel?  Existing cryptocurrencies have little to
+    offer except for Utility vs. existing Fiat currencies, and have acquired a market value of about
+    USD$224 billion.  Something is attractive about the Holo fuel story, and it is already ranked
+    about the 50th of all available cryptocurrencies, and 3rd in buy vs. sell interest.  What
+    factors influence its long term valuation, and what can we do to control them?
+
+**** Security
+
+     Without security, nothing else matters.  The Holo DPKI approach is compelling vs. existing "Wallets".
+
+     - Aggregation of multiple accounts under a single identity
+     - Key revocation/replacement
+     - Recovery from a quorum of secrets distributed to trusted parties or secured separately
+
+**** Utility
+
+     Unless there is significant improved Utility vs. existing Fiat/Cryptocurrency options, there is
+     little incentive to use Holo fuel.
+     
+     - Scalability, essentially without bound.
+     - Capability to implement full featured distributed applications vs. simple smart contracts
+
+**** Fees
+
+     If fees are high vs. even inferior existing options, uptake will be limited.  Since Holo fuel
+     has no scalability limits and little centralized overhead, there is little actual
+     per-transaction infrastructure cost, at scale.  The fees should be maximized, however, to allow
+     funding of expansion to supplant inferior currencies and maximize human benefit.  What fee
+     structure is likely to maximize short- and long-term fee income?
+
+     - A 1% fee for microtransactions is excellent, and completely out of reach for competing system
+     - For larger transactions, it is wildly overpriced vs. all competing services (except credit
+       cards, pay-day loans, etc.)
+     - For inter-account transfers, it eliminates essentially all account maintenance activities
+       (eg. banking)
+
+     Capping transaction fees and a sliding scale would address these issues.  These should be tuned
+     over time to maximize income and remain competitive:
+
+     |  Fee | Tx Size       | Cap        | Transaction Type                                |
+     |------+---------------+------------+-------------------------------------------------|
+     |   0% | all           | 0          | Transfers between accounts within DPKI identity |
+     |   1% | < ~USD$10     | ~USD$0.01  | Microtransaction and small retail               |
+     |  .1% | < ~USD$10,000 | ~USD$1     | Typical consumer retail transactions            |
+     | .01% | >=~USD$10,000 | ~USD$1,000 | Large transactions                              |
+
+     Existing Fiat payment systems (eg. Credit/Debit cards, cheques, bank accounts, etc.) and global
+     consensus Cryptocurrency systems cannot do microtransactions or small retail at all, let alone
+     at a competitive cost.  Gaining access to the *huge* microtransaction and small retail space is
+     critical to the uptake of Holo fuel, and capping the fees at ~USD$0.01 (1 cent) the Holo fuel
+     equivalent of < ~USD$10.00 purchases will be acceptable, and will cover the vast majority of
+     transactions.  The only transactions that will produce reduced Holo system fees are those
+     between ~USD$1.00 and USD$10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.
+     These transactions are in the gray area where existing Cryptocurrencies have similar fees on
+     this scale of transactions; this cap would establish Holo fuel as a clear winner against
+     existing Cryptocurrencies, and every Fiat currency payment processing system.
+
+     Transactions between ~USD$10.00 and ~USD$1,000 are the bulk of normal consumer retail
+     transactions.  Most importantly, these are the short-term savings stock and day-to-day retail
+     flow of money; by far the largest pool of savings and monetary velocity.
+
+     A fee of 1% on these purchases would be considered onerous vs. virtually any other payment
+     system.  Presently, retailers do bear significant losses due to fees on these transactions in
+     Fiat currencies -- but this is largely hidden from consumers by contractually enforced (and
+     craftily mandated) bundling of these fees into overall retail sales overheads.
+
+     This is also the range where existing cryptocurrencies excel; the fees are much lower than for
+     Fiat systems.  For Holo fuel, consumers would not be happy paying a USD$10 direct fee (1%) on a
+     USD$1,000 bicycle, or an extra USD$100 on a used car purchase, and it materially would affect
+     usage of Holo fuel for general retail purchases of all sizes.  By limiting the fees at .1% on
+     USD$10-$1,000 (fee of USD$0.10), and capping USD$1,000-10,000 to a max. USD$1.00 fee, the fee
+     ceases to be a negative psychological factor in these purchases.
+     
+     The loses due to this fee/cap are likely to be negligable, since Holo fuel would not have been
+     competitive for these transactions anyway, and would not likely have been used.  Now, Holo
+     gains additional revenue that it would not have otherwise earned, even though the rate is lower
+     than for micro/small transactions.
+
+     For large transactions, once again cryptocurrency excels.  However, businesses would likely
+     find a .1% fee on *all* their earnings significant; A business that earns USD$1,000,000/yr
+     would bear an additional USD$1,000 expense due to accepting Holo fuel.  This would be noticable
+     to accountants and business owners, and would affect uptake negatively.  By limiting this to
+     USD$1,000 on large transactions (roughly the cost in annual fees for a business bank account),
+     this would ameliorate any objections to Holo fuel uptake at the boardroom level.  Once again, a
+     1% or .1% fee would be a non-starter, so any losses in fee income to Holo are imaginary.
+
+     Finally, since Holo fuel and the Holo Reserve ecosystem need to be able to identify accounts
+     belonging to Holo Host DPKI identities in order to authorize access to Reserves, the
+     infrastructure must be built to identify that accounts are "related" to eachother under the
+     same identity.  Paying fees on transfers between accounts should be eliminated, in order to
+     remove any psychological barriers to uptake resulting from seemingly unnecessary fees being
+     charged just to organize money between personal or business accounts.  Freeing up the Holo fuel
+     users to feel good about organizing their funds is a critical determinant of uptake, and any
+     perceived Holo fee losses once again are illusory; the money is going to eventually be spent,
+     and would (otherwise) just sit uncomfortably in fewer accounts.
+
+     In summary: 1% fees are fine, so long as caps and lower fee are established and larger
+     transactions.  Holo can't earn *any* fees on transactions that never occur; and alienating all
+     users of retail, business and large-scale transactions is a recipe for failure; Holo fuel will
+     forever be relegated to microtransactions in the strictly limited economy of Holo, instead of
+     taking its rightful place as a linchpin currency of trade and commerce.
+
+**** Units circulating
+
+     Currency units available to buy/sell in trades define the value of the currency, in terms of
+     external benchmarks.
+
+     If there are 1M units of currency available on the market at an "ask" price of USD$1, and
+     ~USD$1M of trade into the currency to execute, exactly 1M of units will be purchased by
+     potential trade buyers, exchanged for the USD$1M of goods; the unit value of the currency is in
+     equilibrium at an exchange rate of USD$1/unit.  On the other hand, if there are 1010101 units
+     of currency available at an "ask" of USD$0.99, and 1 unit available at an "ask" of USD$1.00,
+     then the trade buyer would purchase the 1010101 units to satisfy their trade requirements,
+     leaving the current "ask" price at USD$1.00; the currency is now in equilibrium at an exchange
+     rate of USD$1.00/unit.
+
+     Until the value of Holo fuel nears its value-stability target, it makes no financial sense for
+     anyone to issue or use credit.  Only if you believe you can deploy the credit at a rate of
+     return greater than the future deflation rate of the currency, you are going to lose money on
+     the investment.  This is the obverse of the coin all Fiat currency holders are dealt: under
+     inflation, it makes no sense to save in units of the currency, unless you know you can deploy
+     the currency (eg. deposit at interest) at a rate of return the exceeds the inflation rate.
+
+     So, until that point, while Holo fuel is floating and generally deflationary (trade in the
+     currency is increasing over time), neither Holo (via Reserve issuance) nor the Hosts (via
+     Credit lines) should issue Holo fuel.  Once the market value reaches the plateau where Hosts
+     are willing to redeem their earned Holo fuel for various Fiat currencies, Holo Reserves can
+     begin to sell Holo fuel at that price for Fiat, and simultaneously redeem Holo fuel for that
+     Fiat currency, on a LIFO basis.  If Holo gets stuck with Fiat currency in the Reserve at a rate
+     Hosts are no longer willing to accept, it may form a blockage to older an more desirably priced
+     reserves; Holo also has the ability to access reserves in LIFO order, and redeem its own
+     Transaction Fee Holo fuel income for these less desirably priced blocks of Fiat currency
+     reserves.
+
+     When target unit valuation is achieved, *so long as trade in the currency is still generally
+     expanding*, Holo reserves can establish upper/lower bounds; for example (if the currency was
+     pegged to USD$1), the Reserves could place a standing "ask" (sell) order at USD$1.01 per unit,
+     and a "bid" at USD$0.99 per unit ('til its reserves were exhausted).  For every 1M units of
+     currency issued at USD$1.01 during a deflationary period (eg. all circulating units sold,
+     remaining units in savings), 1020202 units could be redeemed at USD$0.99, removing 20202 units
+     from circulation during a subsequent period of inflation (eg. a HODLer decides to liquidate).
+
+     The PID loop controlling the credit factor extended to Hosts on the NPV of their hosting
+     services (or other wealth holders) would be tuned to actively control credit factor K between
+     USD$1.01 and USD$0.99, increasing and decreasing the scale of the credit lines extended on the
+     value of the attached wealth.  Some of these credit line holders would decide to establish
+     "ask" (sell) orders for some of their credit line at say USD$1.009 and a "bid" at USD$0.991 (to
+     beat the order place by the Holo Reserves).  They would have the authority to issue units of
+     currency up to their credit limit during deflation (high currency prices).  In aggregate, all
+     issuers would reflate the money supply; the PID loop would detect the flattening rate of change
+     (Derivative term), pulling back on the credit factor K as the currency value nears its target
+     value.  Later, during inflation (low currency prices), they would purchase the units back at a
+     discount.
+
+**** Units in Savings
+     
+     Units of currency not in circulation are held in savings, until the owners are presented with
+     opportunities that are more compelling than holding the currency.  During deflation (expanding
+     trade in the currency), units will be sold on a need basis, or when the risk of loss compels
+     diversification.  After value stability, savings in a value-stable currency provide a safe
+     haven for funds while seeking investment.  All of these scenarios remove units of currency from
+     circulation, demanding issuance/withdrawal of credit to balance supply/demand for equilibrium
+     valuation to be maintained.
+     
+**** Credit Extended
+
+    Thus, there are 2 degrees of freedom that holders of Holo fuel need to mentally deal with, which
+    are largely independent of eachother, and are influenced by separate factors.
+
+    - The value of a unit of Holo fuel in compute resources (hours of computer time)
+      - How much Holo fuel should I sell my Holo hosting services for?
+        - Defined by the market value of the underlying Holo computation system
+    - The price of a unit of Holo fuel in various Fiat currencies (eg. exchange rate to USD$)
+      - What will I earn when I sell that fuel on the Reserves or other exchanges?
+
+**** Multiple Degrees of Freedom on Holo fuel Valuation
+
+    Fixing the value-stability of Holo fuel is *independent* of the amount of compute resources the
+    Host eventually redeems in Fiat currency; it doesn't matter if 1 month of compute resources is
+    sold for 100 Holo fuel at a USD$1.00/Holofuel, or 10,000 Holo fuel at USD$0.01/Holofuel -- the
+    Host earns USD$100 per month of compute.  The Holo fuel valuation in terms of compute resources
+    can be maintained at an arbitrary value by limiting the inflow of Holo fuel into the core Holo
+    ecosystem.
+
+    Initially, Holo has guaranteed convertability 1-1 between HOT and Holo fuel.  Thus, there will
+    be a large influx of HOT into the Holo system.  This will result in a potentially very large
+    amount of liquid Holo fuel available to Hosts and Holo hApp owners, mapped onto a quite small
+    pool of Host compute resources, if the primary utilization of Holo fuel is just buying and
+    selling Holo compute.  However, if the HOT is not converted, and/or the Holo fuel created upon
+    deposit of the HOT in the HOT/Holofuel Reserve account is used for arbitrary economic activity
+    (savings, exchange for general goods and services), then the amount of Holo fuel used within the
+    Holo ecosystem in exchange for Holo hosting may remain low, allowing us to begin
+    issuing/withdrawing Holo fuel credit lines to control inflation/deflation.
+
+    Thus, the size of the basket of compute resources that Holo fuel eventually settles on depends
+    on the amount available for Holo hApp owners to purchase to buy Holo hosting.  If all HOT$177e9
+    is available (nobody uses/saves it for anything else), and it starts at the current
+    USD$0.001/Holo fuel, the total in circulation is worth USD$177,000,000.  To get 12 circulations
+    of that Holo fuel per hear (Holo hApps and Hosts only saving about 1 month's worth), the compute
+    infrastructure would have to be worth about USD$2.2 billion / year in sales -- about 1/6th the
+    scale of Amazon AWS (which earned USD$3.3 billion in 2017 on USD$12.2 billion in sales).  Since
+    Holo can be deployed on commodity hardware, but doesn't support commodity disk images (only
+    Holochain applications), it is difficult to imagine that scale of compute happening in the short
+    term.
+
+    This is not the most likely scenario.  Holo fuel has *significant* benefits vis a vis existing
+    cryptocurrencies.  These currencies have significant complexity, risk and scalability issues
+    that limit uptake, which are solved by Holo fuel's Holochain underpinnings, and yet achieve high
+    valuations based on utility alone.  *If* Holo addresses the high fee issues (eg. capped the 1%
+    fee on all Spender transactions at the equivalent of USD$0.01, or 1 cent), then the uptake for
+    non-Holo transactions could be essentially *unlimited*.  This would support the influx of wealth
+    from other cryptocurrencies and Fiat deposits which could quickly approach USD$177,000,000,000
+    (177 billion) in value.  The total market capitization of all cryptocurrencies is estimated at
+    about USD$224 billion as of September 2018; roughly the value of the residential real estate in
+    1 small city.
+    
+    Quenching deflation (decreasing commodity prices, increasing per-unit value) at a certain target
+    unit value is simple, as long as enough people have attached enough wealth to the system: begin
+    issuing Holo fuel credit against wealth (eg. the net present value of a Holo hosting service).
+    Even if that target value is low (say, USD$0.01 or USD$1.77 billion, and if the Holo system
+    generated USD$5.00 per core per month in revenue, the NPV of one year's worth of 1 core worth
+    (USD$60) of hosting at a 10% discount rate is USD$54.55.  Estimating a credit factor of 50%,
+    that results in USD$27.27 of credit extended per core. Extending approximately the same amount
+    of credit as the valuation of the already issued tokens would require about 65 million cores of
+    Holo Hosting power online; not immediately practical.
+
+    But, value-stability in Holo fuel at a significant per-unit valuation requires much more than
+    that.  The ability to also quench inflation (increasing commodity prices, lowering per-unit
+    values) in Holo fuel requires that we be able to withdraw a large fraction of the circulating
+    supply, by reducing credit lines.  If the existing Holo fuel credit created via issuance of
+    credit against wealth is small vs. the total supply (as it could be at the start of the
+    value-stable period with Holo fuel), and there was a significant reduction in Holo fuel
+    financial activity or a large HODLer began dumping their savings, at least that amount of Holo
+    fuel credit would need to be withdrawn.  To avoid significant reductions in each credit account,
+    the total amount issued in credit has to be very large vs. the amount of Holo fuel that needs to
+    be withdrawn. So, total credit issued needs to be several multiples of the amount in circulation
+    *not* created through credit lines (eg. that originating from the originally minted HOT ERC20
+    tokens).
+
+    The only practical way to achieve that is to allow *other* forms of wealth to be attached and
+    monetized into Holo fuel credit; for example, houses, vehicles, monetary savings and
+    non-monetary wealth owned unencumbered by liens or other restrictions.
+
+**** Modelling 
+
+    in external Fiat currencies will float  We will not be doing that in this model; see [[https://github.com/pjkundert/holofuel-model/blob/master/README.pdf][Holo Fuel Currency System Design and
+    Modelling]] to see how value-stability in terms of a basket of commodities can be implemented.
+
+    We
+    will fix the value of Holo fuel at 
+
+    When prices rise (Client requests increase, Host load increases prices), eventually they will
+    reach the Reserve agent sellers' ask price, derived from the Hosts' cash-out settings.  This
+    will result in the issuance of more Holo fuel, moderating price deflation.  Basically, Holo fuel
+    prices should cap out at Host cash-out price.  We can limit Reserve issuance and/or increase
+    prices to allow further increase in Holo fuel price, but we won't do that in this model.
+
     the commodity representing wall-clock duration of requests serviced by Holo Hosts.  Slower hosts
     are priced cheaply, faster hosts are more expensive.  This is an aggregate of all types of
     requests made to a hosted hApp, so represents the full spectrum of Host behaviours (requests
@@ -470,26 +865,21 @@ for curr in currencies:
     price tranche in that performance band, reducing its request rate, and hence lowering its
     income.
 
-    The value of Holo fuel (its basket) float; the market value (eg. USD$/fuel bid/ask on the
-    Reserve) will fluctuate.  Fixing the value-stability of Holo fuel is arbitrary, and can be
-    maintained at an arbitrary value by limiting the inflow of Holo fuel into the core Holo
-    ecosystem.  We will not be doing that in this model.  However, when prices rise (Client requests
-    increase, Host load increases prices), eventually they will reach the Reserve ask price set by
-    the Hosts' cash-out settings.  This will result in the issuance of more Holo fuel, moderating
-    price deflation.  Basically, Holo fuel prices should cap out at Host cash-out price.  We can
-    limit Reserve issuance and/or increase prices to allow further increase in Holo fuel price, but
-    we won't do that in this model.
 
-    Hosts will sell fuel on the Reserve (which is also an Exchange) to whomever is buying at market
-    rates, to maintain their monthly cost needs.  Holo hApps will buy on the Reserve/exchange to
-    maintain service.  As prices increase HODLers should begin liquidating some of the HOT$177B in
-    Holo fuel holdings to furnish this need.  They would sell on a HOT/fuel exchange to do this, but
-    we'll just simulate everyone holding Holo fuel.
+    Hosts may chose to sell fuel on the Reserve (which is also an exchange in this simulation) to
+    whomever is buying at market rates, to maintain their monthly cost needs, or may hold onto fuel
+    until they can sell at their cash-out price, either to the Reserve agent (Hosts can access Fiat
+    reserves in LIFO order), or to any other buyer.  Holo hApps will buy on the Reserve/exchange to
+    maintain service, either from private sellers, or from the Reserve agent at the Reserve ask
+    price.
+
+    As prices increase HODLers should begin liquidating some of their HOT$177e9 in Holo fuel
+    holdings to furnish this need.  They would sell on a HOT/fuel exchange to do this, but we'll
+    just simulate everyone holding Holo fuel buying and selling on the Reserve exchange; however,
+    only Hosts are authorized to sell (redeem) Holo fuel to the Reserve agent at LIFO rates.
 
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/client-requests.png :exports both :results raw drawer
-
-from scipy import stats # stats.zscore, stats.norm.cdf, ...
 
 def std_dst_prob( SD ):
     """Given a number of SD away from the mean, compute the probability of that number being part of the
@@ -511,10 +901,9 @@ def std_dst_prob( SD ):
 
     """
     if SD < 0:
-        return 2.0 * stats.norm.cdf( SD )
+        return 2.0 * scipy.stats.norm.cdf( SD )
     else:
-        return 2.0 * ( 1 - stats.norm.cdf( SD ))
-
+        return 2.0 * ( 1 - scipy.stats.norm.cdf( SD ))
 
 
 def exponential_moving_average( current, sample, weight ):
@@ -528,133 +917,133 @@ class Client_hApp( trading.actor ):
     time during the first hour.  So, if we sample all the client's self.requests at the Nyquist
     rate, we'll have a good instantaneous view of the current request rate, in request/hr. """
     def __init__( self,
-            midday_mean = 12 * trading.hour, midday_sigma = 2,	# noon, +/- 2 hours has 2/3 of requests
-	    requests_mean = 10, requests_sigma = 2,		# 10 req/h, +/- 2 peak
-	    quanta = 1 * trading.hour,				# compute next hour's requests hourly
-	    requests_avg_dur = 2 * trading.day,			# keep ?-day rolling average of request rate
-	    holofuel_runway = 7 * trading.day,			# target this many day's fuel on hand
-	    minimum = -math.inf,				# allow client to go into debt
-	    **kwds ):
+            midday_mean = 12 * trading.hour, midday_sigma = 2,  # noon, +/- 2 hours has 2/3 of requests
+            requests_mean = 10, requests_sigma = 2,             # 10 req/h, +/- 2 peak
+            quanta = 1 * trading.hour,                          # compute next hour's requests hourly
+            requests_avg_dur = 2 * trading.day,                 # keep ?-day rolling average of request rate
+            holofuel_runway = 7 * trading.day,                  # target this many day's fuel on hand
+            minimum = -math.inf,                                # allow client to go into debt
+            **kwds ):
         super( Client_hApp, self ).__init__(
-		quanta		= quanta,
-		minimum		= minimum,
-		needs		= [ trading.need_t( 0, None, 'Holofuel', quanta, 0 )], # dummy; adjust targets manually
-		**kwds )
-	self.midday_mean	= midday_mean			# eg. -7 (Mountain), +5 (China Standard)
-	self.midday_sigma	= midday_sigma
-	self.requests_mean	= requests_mean
-	self.requests_sigma	= requests_sigma
-	self.requests		= 0
-	self.unsatisfied	= 0
-	# avg. should be somewhere around here
-	self.requests_avg	= requests_mean * ( 3 * midday_sigma/2 / 24 ) # 99.8% w/in 3 sigma of mean
+                quanta          = quanta,
+                minimum         = minimum,
+                needs           = [ trading.need_t( 0, None, 'Holofuel', quanta, 0 )], # dummy; adjust targets manually
+                **kwds )
+        self.midday_mean        = midday_mean                   # eg. -7 (Mountain), +5 (China Standard)
+        self.midday_sigma       = midday_sigma
+        self.requests_mean      = requests_mean
+        self.requests_sigma     = requests_sigma
+        self.requests           = 0
+        self.unsatisfied        = 0
+        # avg. should be somewhere around here
+        self.requests_avg       = requests_mean * ( 3 * midday_sigma/2 / 24 ) # 99.8% w/in 3 sigma of mean
 
-	self.requests_avg_dur	= requests_avg_dur
-	self.compute_requests_rate( now=self.start )
+        self.requests_avg_dur   = requests_avg_dur
+        self.compute_requests_rate( now=self.start )
 
-	self.holofuel_runway	= holofuel_runway
+        self.holofuel_runway    = holofuel_runway
 
     def compute_requests_rate( self, now ):
-	# quanta satisfied; .now updated, .dt has time period since last run.  Compute our next
-	# hour's number of satisfied/unsatisfied requests, based on the last hour's Holo system
-	# thruput.  Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization
-	# of Host resources, the next hour we'll compute the target rate we'd like (say, 10
-	# requests), but reduce it by / 1.25, and say 8.0 satisfied, 2.0 unsatisfied.
-	peak_desired		= rnd_std_dst( mean=self.requests_mean, sigma=self.requests_sigma, minimum=0 )
-	# how many hours -/+ from our midday peak utilization?  Pick a random hour we want to peak,
-	# somewhere near our desired "midday".  Lets pick a random normal value around our target,
-	# and then compute our Z-score: what is the probability of something being in the normal
-	# distribution, that far from the mean.  For example, if our curr_hour is 11:00, and our peak
-	# hour comes out to be exactly 12:00, we're -1 hour away.  If our sigma (size of 1 standard deviation)
-	# is 6 hours, we're -1/6th SD away from the mean.
-	curr_hour		= ( now % trading.day ) / trading.hour				# (0,24] UTC
-	peak_hour		= rnd_std_dst( mean=self.midday_mean, sigma=self.midday_sigma )	# (-12,+12)
-	norm_hour		= ( peak_hour + 24 ) % 24 # convert eg. timezone -7 to +17 hour of UTC day
-	diff_hour		= curr_hour - norm_hour
-	if diff_hour < -12: 
-	    diff_hour 	       += 24
-	elif diff_hour > +12:
-	    diff_hour 	       -= 24
-	#print( "midday_mean: {self.midday_mean}, peak: {peak_hour}, curr: {curr_hour}, norm: {norm_hour}, diff: {diff_hour}".format( **locals() ))
-	
-	curr_sd			= diff_hour / self.midday_sigma
-	curr_hour_prob		= std_dst_prob( curr_sd )
-	hour_target		= peak_desired * curr_hour_prob
-	#print( "curr/peak hour: {} vs. {}, curr_sd: {}, hour_target: {}, prob: {} ".format( 
-	#    curr_hour, peak_hour, curr_sd, hour_target, curr_hour_prob ))
-	self.requests		= hour_target
-	self.unsatisfied	= 0 # TODO: get this from Host average utilization
-	self.requests_avg	= exponential_moving_average( self.requests_avg, self.requests, self.quanta / self.requests_avg_dur )
+        # quanta satisfied; .now updated, .dt has time period since last run.  Compute our next
+        # hour's number of satisfied/unsatisfied requests, based on the last hour's Holo system
+        # thruput.  Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization
+        # of Host resources, the next hour we'll compute the target rate we'd like (say, 10
+        # requests), but reduce it by / 1.25, and say 8.0 satisfied, 2.0 unsatisfied.
+        peak_desired            = rnd_std_dst( mean=self.requests_mean, sigma=self.requests_sigma, minimum=0 )
+        # how many hours -/+ from our midday peak utilization?  Pick a random hour we want to peak,
+        # somewhere near our desired "midday".  Lets pick a random normal value around our target,
+        # and then compute our Z-score: what is the probability of something being in the normal
+        # distribution, that far from the mean.  For example, if our curr_hour is 11:00, and our peak
+        # hour comes out to be exactly 12:00, we're -1 hour away.  If our sigma (size of 1 standard deviation)
+        # is 6 hours, we're -1/6th SD away from the mean.
+        curr_hour               = ( now % trading.day ) / trading.hour                          # (0,24] UTC
+        peak_hour               = rnd_std_dst( mean=self.midday_mean, sigma=self.midday_sigma ) # (-12,+12)
+        norm_hour               = ( peak_hour + 24 ) % 24 # convert eg. timezone -7 to +17 hour of UTC day
+        diff_hour               = curr_hour - norm_hour
+        if diff_hour < -12: 
+            diff_hour          += 24
+        elif diff_hour > +12:
+            diff_hour          -= 24
+        #print( "midday_mean: {self.midday_mean}, peak: {peak_hour}, curr: {curr_hour}, norm: {norm_hour}, diff: {diff_hour}".format( **locals() ))
+        
+        curr_sd                 = diff_hour / self.midday_sigma
+        curr_hour_prob          = std_dst_prob( curr_sd )
+        hour_target             = peak_desired * curr_hour_prob
+        #print( "curr/peak hour: {} vs. {}, curr_sd: {}, hour_target: {}, prob: {} ".format( 
+        #    curr_hour, peak_hour, curr_sd, hour_target, curr_hour_prob ))
+        self.requests           = hour_target
+        self.unsatisfied        = 0 # TODO: get this from Host average utilization
+        self.requests_avg       = exponential_moving_average( self.requests_avg, self.requests, self.quanta / self.requests_avg_dur )
 
     def run( self, **kwds ):
         # Runs the Client/hApp trading.actor's needs/targets and issues trades as required to get
-	# self.targets satisfied.
+        # self.targets satisfied.
         if not super( Client_hApp, self ).run( **kwds ):
             return False
 
-	# Transfer our last hour's request rate Hosting payment in Holofuel, to a random Host.
-	host			= random.choice( hosts )
-	cost			= self.requests
-	try:		 host.assets['Holofuel'] +=  cost
+        # Transfer our last hour's request rate Hosting payment in Holofuel, to a random Host.
+        host                    = random.choice( hosts )
+        cost                    = self.requests
+        try:             host.assets['Holofuel'] +=  cost
         except KeyError: host.assets['Holofuel']  = +cost
-	try:		 self.assets['Holofuel'] -=  cost
+        try:             self.assets['Holofuel'] -=  cost
         except KeyError: self.assets['Holofuel']  = -cost
 
-	# Compute our next hour's Request rate, based on time of day
-	self.compute_requests_rate( now=self.now )
+        # Compute our next hour's Request rate, based on time of day
+        self.compute_requests_rate( now=self.now )
 
-	# We've computed our requests_avg Requests/hour.  We have an hourly 'Holofuel' need: but,
-	# we've set it to 0; we'll adjust self.targets manually to keep (say) a week's worth of
-	# runway Holo fuel on hand.  We'll be paying Hosting fees hourly for the last hour's
-	# requests, out of our Holo fuel assets, reducing them, triggering a buy to bring us back up
-	# to targets.
-	self.target['Holofuel']	= self.holofuel_runway * self.requests_avg / self.quanta 
-	return True
+        # We've computed our requests_avg Requests/hour.  We have an hourly 'Holofuel' need: but,
+        # we've set it to 0; we'll adjust self.targets manually to keep (say) a week's worth of
+        # runway Holo fuel on hand.  We'll be paying Hosting fees hourly for the last hour's
+        # requests, out of our Holo fuel assets, reducing them, triggering a buy to bring us back up
+        # to targets.
+        self.target['Holofuel'] = self.holofuel_runway * self.requests_avg / self.quanta 
+        return True
 
 
 class Sample_engine( trading.engine_status ):
     def __init__( self, **kwds ):
         super( Sample_engine, self ).__init__( **kwds )
-	self.requests		= [] # [ (<now>,<client-requests>), ... ]
-	self.hApp_holdings	= [] # [ (<now>,{'Holofuel': 123, 'USD':-123}), ... ]
-	self.Host_holdings	= []
+        self.requests           = [] # [ (<now>,<client-requests>), ... ]
+        self.hApp_holdings      = [] # [ (<now>,{'Holofuel': 123, 'USD':-123}), ... ]
+        self.Host_holdings      = []
 
     @property
     def hApps( self ):
         for a in self.agents:
             if isinstance( a, Client_hApp ):
-    	        yield a
+                yield a
 
     @property
     def Hosts( self ):
         for a in self.agents:
             if isinstance( a, Host ):
-    	        yield a
+                yield a
 
     def status( self, now ):
         """Collect hourly snapshots of all of our Client/hApps' simulated requests for that hour and rolling avg."""
         super( Sample_engine, self ).status( now=now )
-	self.requests.append( (now, sum( c.requests for c in self.hApps ), sum( c.requests_avg for c in self.hApps )) )
-	self.hApp_holdings.append( (now, {
-	    'USD':	sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
-	    'Holofuel':	sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps )
-	}) )
-	self.Host_holdings.append( (now, {
-	    'USD':	sum( c.balances.get( 'USD' ) or 0 for c in self.Hosts ),
-	    'Holofuel':	sum( c.assets.get( 'Holofuel' ) or 0 for c in self.Hosts )
-	}) )
-	print( "{}: Holofuel Target: {}, Holdings: {}, USD: {} Order Book:\n{}".format( 
-	    str( self.world ), 
-	    sum( c.target.get( 'Holofuel' ) or 0 for c in self.hApps ),
-	    sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps ),
-	    sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
-	    self.exchange.format_book() ))
+        self.requests.append( (now, sum( c.requests for c in self.hApps ), sum( c.requests_avg for c in self.hApps )) )
+        self.hApp_holdings.append( (now, {
+            'USD':      sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
+            'Holofuel': sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps )
+        }) )
+        self.Host_holdings.append( (now, {
+            'USD':      sum( c.balances.get( 'USD' ) or 0 for c in self.Hosts ),
+            'Holofuel': sum( c.assets.get( 'Holofuel' ) or 0 for c in self.Hosts )
+        }) )
+        print( "{}: Holofuel Target: {}, Holdings: {}, USD: {} Order Book:\n{}".format( 
+            str( self.world ), 
+            sum( c.target.get( 'Holofuel' ) or 0 for c in self.hApps ),
+            sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps ),
+            sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
+            self.exchange.format_book() ))
 
 # 
 # Create varying populations with different request activity times
 # 
-pop_t				= collections.namedtuple( 'Population', ['locale', 'tz', 'P'] )
-populations			= [
+pop_t                           = collections.namedtuple( 'Population', ['locale', 'tz', 'P'] )
+populations                     = [
     pop_t( 'NA-west', -8,  100e6 * .9 ),
     pop_t( 'NA-mid',  -6,   75e6 * .8 ),
     pop_t( 'NA-east', -5,  150e6 * .9 ),
@@ -665,11 +1054,11 @@ populations			= [
 ]
 
 def population_middays( count, *matches ): # eg. 'NA', 'Asia'; empty matches == everything
-    pops_selected		= [ p for p in populations for m in ( matches or [''] ) if m in p.locale ]
-    pop_prob			= [ p.P for p in pops_selected ] # population * middle-class,technical
-    pop_prob		       /= np.sum( pop_prob ) # normalize sum of probabilites to 1.0
-    pop_tz			= [ p.tz for p in pops_selected ]
-    pop_middays			= np.random.choice( a=pop_tz, size=count, replace=True, p=pop_prob )
+    pops_selected               = [ p for p in populations for m in ( matches or [''] ) if m in p.locale ]
+    pop_prob                    = [ p.P for p in pops_selected ] # population * middle-class,technical
+    pop_prob                   /= np.sum( pop_prob ) # normalize sum of probabilites to 1.0
+    pop_tz                      = [ p.tz for p in pops_selected ]
+    pop_middays                 = np.random.choice( a=pop_tz, size=count, replace=True, p=pop_prob )
     print( ', '.join( "{:>10}: UTC {:+d} P({:.2f}):".format( locale, tz, prob )
                       for locale,prob,tz in zip( (p.locale for p in pops_selected ), pop_prob, pop_tz )))
     return pop_middays
@@ -678,26 +1067,26 @@ def population_middays( count, *matches ): # eg. 'NA', 'Asia'; empty matches == 
 # 
 # Render a duration of client_count Client's request activity
 # 
-client_count			= 50
-sim_duration			= 5 * trading.day
+client_count                    = 25
+sim_duration                    = 5 * trading.day
 
-clients				= [ Client_hApp(
-					identity	= "Cli/hApp{}".format( n ),
-					midday_mean	= midday_mean )
+clients                         = [ Client_hApp(
+                                        identity        = "Cli/hApp{}".format( n ),
+                                        midday_mean     = midday_mean )
                                     for n,midday_mean in enumerate( population_middays( client_count, 'NA', 'Asia' )) ]
 
 
-res				= reserve_issuing( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
-wld				= trading.world( duration=sim_duration, quanta=trading.hour / 4 ) # 2x Nyquise
-eng				= Sample_engine( world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 )
+res                             = reserve_issuing( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
+wld                             = trading.world( duration=sim_duration, quanta=trading.hour / 4 ) # 2x Nyquise
+eng                             = Sample_engine( world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 )
 print( str( eng.world ))
 eng.run()
 print( "Done: %s" % ( eng.world ))
 
 
-x_now,y_req,y_avg		= [],[],[]
+x_now,y_req,y_avg               = [],[],[]
 if eng.requests:
-    x_now,y_req,y_avg		= zip( *eng.requests )
+    x_now,y_req,y_avg           = zip( *eng.requests )
 
 fig,ax = plt.subplots()
 plt.plot( x_now, y_req, label="Requests/hour" )
@@ -783,3 +1172,7 @@ for a in ax0,ax1,ax2:
     [[file:images/client-holdings.png]]
     :END:
     #+LATEX: }
+
+    This illustrates the creation of Holo fuel via Reserves at a fixed issuance rate of
+    USD$1/Holofuel.  No other sellers are available, so Client/hApp buyers are forced to purchase at
+    the Reserve's issuance rate.
