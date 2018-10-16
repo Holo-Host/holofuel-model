@@ -178,7 +178,7 @@ import time
 
 import scipy # stats.zscore, stats.norm.cdf, ...
 
-#logging.basicConfig( level=logging.DEBUG )
+logging.basicConfig( level=logging.INFO )
 
 from holofuel.model import trading
 from holofuel.model.reserve_lifo import reserve, reserve_issuing
@@ -293,8 +293,13 @@ rates                           = Rates( "static/data/FX_RATES_DAILY-sd-2017-01-
   #+BEGIN_SRC ipython :session :exports both :results raw drawer
 
 class Host( trading.agent ):
+
+    capacity_multiplier		= 1				# change to alter all Host's .cores/.capacity
+
     def __init__( self, redemption,
             quanta = 1 * trading.hour,
+	    cores = 1000,					# Represents this many host-cores
+	    capacity_mean = 1.0, capacity_sigma = 0.2,		# 'holo' host-month capacity
             **kwds ):
         """Support 0 or 1 specified exchange rate, deducing all others.  Filter out currencies not desired
         (target rate is Falsey). 
@@ -319,6 +324,19 @@ class Host( trading.agent ):
                            for c,r in self.redemption.items()
                            if type( r ) in (int,float) ))
 
+        self._cores		= cores
+        self.capacity_mean	= capacity_mean
+	self.capacity_sigma	= capacity_sigma
+        self._capacity		= rnd_std_dst( mean=self.capacity_mean, sigma=self.capacity_sigma, minimum=0 )
+
+    @property
+    def capacity( self ):
+        return self._capacity * self.capacity_multiplier
+
+    @property
+    def cores( self ):
+        return self._cores * self.capacity_multiplier
+
     def redemption_rate( self, day, curr ):
         """Computes the target redemption rate in the specified currency, or Falsey (0/None/False) if not
         desired.  If a currency is desired, but no minimum cash-out rate is specified (indicating
@@ -342,6 +360,7 @@ class Host( trading.agent ):
                 return rate_redeem
         # No target currency w/ minimum rate: "market" rates are desired
         return True
+
 # 
 # Compute a number of Host w/ varying numbers of desired currencies and target exchange rates
 # 
@@ -364,9 +383,10 @@ for h in range( host_count ):
     if fiat and rate_cad:
         for curr in np.random.choice( a=list( fiat ), size=min( rate_num, len( fiat )), replace=False ):
             redemption[curr]    = rate_cad * rates.exchange( rates.days[0], 'CAD', curr )
-    hosts.append( Host( identity = "Host{}".format( h ), redemption = redemption ))
-    #print( "CAD exch: %6.4f, target Fiat %r == %r %s" % (
-    #    rate_cad, fiat, hosts[-1].redemption, "" if rate_cad else "==> market rates" ))
+    hosts.append( Host( identity = "Host {}".format( h ), redemption = redemption ))
+    print( "CAD exch: %6.4f, target Fiat %r == %r %s; Holdings: %r" % (
+        rate_cad, fiat, hosts[-1].redemption, "" if rate_cad else "==> market rates",
+	hosts[-1].assets ))
 
 
 # 
@@ -416,13 +436,13 @@ for curr in currencies:
   |          |          |  3/ea +/-2 |    Rate |         |         |
   | Currency | % Weight | % Selected |    Mean |  Median | Std.Dev |
   |----------+----------+------------+---------+---------+---------|
-  | USD      |     14.5 |       28.0 |  0.3639 |  0.3947 |  0.1832 |
-  | EUR      |     18.2 |       52.0 |  0.3643 |  0.3334 |  0.1982 |
-  | CAD      |     11.9 |       40.0 |  0.6072 |  0.6209 |  0.1999 |
-  | CNY      |     23.4 |       44.0 |  2.3583 |  2.2716 |  1.2543 |
-  | RUB      |      5.2 |       28.0 | 17.4500 | 19.9817 |  7.6965 |
-  | TRY      |      4.3 |        8.0 |  1.3243 |  1.4690 |  0.1448 |
-  | HOT      |     22.5 |       24.0 |  1.0000 |  1.0000 |  0.0000 |
+  | USD      |     15.2 |       40.0 |  0.4028 |  0.4573 |  0.1303 |
+  | EUR      |     26.2 |       52.0 |  0.3683 |  0.4123 |  0.1488 |
+  | CAD      |     23.1 |       68.0 |  0.5260 |  0.5761 |  0.1952 |
+  | CNY      |      4.9 |       32.0 |  3.0453 |  3.3657 |  1.0281 |
+  | RUB      |      4.9 |       12.0 | 14.1754 | 15.0029 |  4.5034 |
+  | TRY      |     20.7 |       64.0 |  1.3455 |  1.5028 |  0.4430 |
+  | HOT      |      4.9 |       12.0 |  1.0000 |  1.0000 |  0.0000 |
   :END:
   #+LATEX: }
 
@@ -936,24 +956,51 @@ class Client_hApp( trading.actor ):
     window of time peaking around some time during the day.  Our quanta is 1 hour, so we'll
     recompute our next hour's requests every hour -- as well, each Client will have a random start
     time during the first hour.  So, if we sample all the client's self.requests at the Nyquist
-    rate, we'll have a good instantaneous view of the current request rate, in request/hr. """
+    rate, we'll have a good instantaneous view of the current request rate, in request/hr.
+
+    Each Client_hApp represents a block of actual clients; the requests_mean is denominated in 1 x
+    'holo' worth of requests; a month of Host core wall-clock duration of requests to service some
+    number of individual active users (Clients); this varies based on the computational complexity
+    of the hApp (per-request wall-clock avg. duration) and the request rate (how many requests
+    required per client visit) to sustain each client.
+
+    So, this doesn't represent a certain number of clients; it represents a certain hosting load
+    required to satisfy a pool of clients in some geographical locale with a certain request rate
+    pattern, peaking at the target request_mean (eg. 10 holo, or 10 wall-clock months of Hosting
+    load) during each quanta (eg. 1 hour).  So, for a typical small hApp which might be able to
+    sustain 10 requests/second (avg. 100ms per request at 100% load, or 300ms per request at 33%
+    load eg. due to blocking I/O; remember: Holo hosts distributed apps, so most requests will
+    perform network I/O; static content, and simple programmatically generated content will be
+    served by CDNs or simple webservers, not Holo).  If it uses 10 'holo' (Host-months) worth of
+    hosting in an hour, then the Holo Hosting system is serving 10 * 2,629,800 seconds, or around
+    26,298,000 requests during that hour.  If the average online client consumes 100 request to
+    execute their activity during that hour, we are representing the activity of 262,980 unique hApp
+    users.
+    
+    """
+
+    # Increase the reqwuest_clients for each Client_hApp by this multiplier
+    requests_clients_multiplier	= 1
+
     def __init__( self,
             midday_mean = 12 * trading.hour, midday_sigma = 2,  # noon, +/- 2 hours has 2/3 of requests
-            requests_mean = 10, requests_sigma = 2,             # 10 req/h, +/- 2 peak
+            requests_mean = 1.0, requests_sigma = .2,           # 1 'holo' worth of req/h, +/- .2 peak
+	    requests_clients = 2500,				# This represents this many clients (lower == heavier hApp)
             quanta = 1 * trading.hour,                          # compute next hour's requests hourly
             requests_avg_dur = 2 * trading.day,                 # keep ?-day rolling average of request rate
             holofuel_runway = 7 * trading.day,                  # target this many day's fuel on hand
-            minimum = -math.inf,                                # allow client to go into debt
-            **kwds ):
+            minimum = -math.inf, **kwds ):                      # allow client to go into debt
+        # dummy (zero) 'needs'; adjust targets manually, but ensures that Holofuel target satsifying
+        # trades are executed.
         super( Client_hApp, self ).__init__(
                 quanta          = quanta,
                 minimum         = minimum,
-                needs           = [ trading.need_t( 0, None, 'Holofuel', quanta, 0 )], # dummy; adjust targets manually
-                **kwds )
+                needs           = [ trading.need_t( 0, None, 'Holofuel', quanta, 0 )], **kwds )
         self.midday_mean        = midday_mean                   # eg. -7 (Mountain), +5 (China Standard)
         self.midday_sigma       = midday_sigma
         self.requests_mean      = requests_mean
         self.requests_sigma     = requests_sigma
+        self.requests_clients   = requests_clients
         self.requests           = 0
         self.unsatisfied        = 0
         # avg. should be somewhere around here
@@ -964,13 +1011,24 @@ class Client_hApp( trading.actor ):
 
         self.holofuel_runway    = holofuel_runway
 
+    # 
+    # .clients       == the number of Client sessions
+    # .requests      == 'holo' load represented by all .client's requests during .dt
+    # .requests_avg  == exponential moving average of load
+    # 
+    @property
+    def clients( self ):
+        return self.requests_clients * self.requests_clients_multiplier
+
     def compute_requests_rate( self, now ):
-        # quanta satisfied; .now updated, .dt has time period since last run.  Compute our next
-        # hour's number of satisfied/unsatisfied requests, based on the last hour's Holo system
-        # thruput.  Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization
-        # of Host resources, the next hour we'll compute the target rate we'd like (say, 10
-        # requests), but reduce it by / 1.25, and say 8.0 satisfied, 2.0 unsatisfied.
+        """Time quanta reached; .now updated, .dt has time period since last run.  Compute our next hour's
+        number of satisfied/unsatisfied requests, based on the last hour's Holo system thruput.
+        Thus, when Clients want to perform 10 tx but the last hour saw 125% utilization of Host
+        resources, the next hour we'll compute the target rate we'd like (say, 10 requests), but
+        reduce it by / 1.25, and say 8.0 satisfied, 2.0 unsatisfied.  """
         peak_desired            = rnd_std_dst( mean=self.requests_mean, sigma=self.requests_sigma, minimum=0 )
+	peak_desired	       *= self.requests_clients_multiplier
+
         # how many hours -/+ from our midday peak utilization?  Pick a random hour we want to peak,
         # somewhere near our desired "midday".  Lets pick a random normal value around our target,
         # and then compute our Z-score: what is the probability of something being in the normal
@@ -997,35 +1055,40 @@ class Client_hApp( trading.actor ):
         self.requests_avg       = exponential_moving_average( self.requests_avg, self.requests, self.quanta / self.requests_avg_dur )
 
     def run( self, **kwds ):
-        # Runs the Client/hApp trading.actor's needs/targets and issues trades as required to get
-        # self.targets satisfied.
+        """Runs the Client/hApp trading.actor's needs/targets and issues trades as required to get
+        self.targets satisfied.
+        """
         if not super( Client_hApp, self ).run( **kwds ):
-            return False
+            return False # Quanta not yet satisfied; do nothing
 
         # Transfer our last hour's request rate Hosting payment in Holofuel, to a random Host.
         host                    = random.choice( hosts )
         cost                    = self.requests
-        try:             host.assets['Holofuel'] +=  cost
+        try:             host.assets['Holofuel'] += +cost
         except KeyError: host.assets['Holofuel']  = +cost
-        try:             self.assets['Holofuel'] -=  cost
+        try:             self.assets['Holofuel'] += -cost
         except KeyError: self.assets['Holofuel']  = -cost
-
+	print( "Transferring {} Holofuel from {} to {}: {}".format( cost, str( self ), str( host ), repr( host.assets )))
         # Compute our next hour's Request rate, based on time of day
         self.compute_requests_rate( now=self.now )
 
-        # We've computed our requests_avg Requests/hour.  We have an hourly 'Holofuel' need: but,
-        # we've set it to 0; we'll adjust self.targets manually to keep (say) a week's worth of
-        # runway Holo fuel on hand.  We'll be paying Hosting fees hourly for the last hour's
-        # requests, out of our Holo fuel assets, reducing them, triggering a buy to bring us back up
-        # to targets.
+        # We've computed our requests_avg Requests/hour.  W'll adjust self.targets manually to keep
+        # (say) a week's worth of runway Holo fuel on hand.  We'll be paying Hosting fees hourly for
+        # the last hour's requests, out of our Holo fuel assets, reducing them, triggering a buy to
+        # bring us back up to targets.
         self.target['Holofuel'] = self.holofuel_runway * self.requests_avg / self.quanta 
         return True
 
 
 class Sample_engine( trading.engine_status ):
+    """A trading.engine that takes a sample of the world's constituent agents every status_period.
+    These samples are used to produce the graphs.
+    """
     def __init__( self, **kwds ):
         super( Sample_engine, self ).__init__( **kwds )
-        self.requests           = [] # [ (<now>,<client-requests>), ... ]
+        self.requests           = [] # [ (<now>, <'holo'-capacity per quanta>,<client-requests>,<client-request-avg>), ... ]
+	self.clients		= [] # [ (<now>, <#clients>), ... ]
+	self.cores		= [] # [ (<now>, <#cores>), ... ]
         self.hApp_holdings      = [] # [ (<now>,{'Holofuel': 123, 'USD':-123}), ... ]
         self.Host_holdings      = []
 
@@ -1044,7 +1107,11 @@ class Sample_engine( trading.engine_status ):
     def status( self, now ):
         """Collect hourly snapshots of all of our Client/hApps' simulated requests for that hour and rolling avg."""
         super( Sample_engine, self ).status( now=now )
-        self.requests.append( (now, sum( c.requests for c in self.hApps ), sum( c.requests_avg for c in self.hApps )) )
+        self.requests.append( (now, sum( h.capacity for h in self.Hosts ),
+	                            sum( c.requests for c in self.hApps ),
+				    sum( c.requests_avg for c in self.hApps )) )
+        self.clients.append(  (now, sum( c.clients  for c in self.hApps )) )
+	self.cores.append(    (now, sum( h.cores    for h in self.Hosts )) ) 
         self.hApp_holdings.append( (now, {
             'USD':      sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
             'Holofuel': sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps )
@@ -1059,6 +1126,15 @@ class Sample_engine( trading.engine_status ):
             sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps ),
             sum( c.balances.get( 'USD' ) or 0 for c in self.hApps ),
             self.exchange.format_book() ))
+
+class Sample_engine_inc_clients( Sample_engine ):
+    def status( self, now ):
+        try:
+	    return super( Sample_engine_inc_clients, self ).status( now )
+	finally:
+	    # Adjust the simulation on each status cycle.  
+	    # Increase client load by 2% / period
+	    Client_hApp.requests_clients_multiplier *= 1.02
 
 # 
 # Create varying populations with different request activity times
@@ -1086,28 +1162,46 @@ def population_middays( count, *matches ): # eg. 'NA', 'Asia'; empty matches == 
 
 
 # 
-# Render a duration of client_count Client's request activity
+# Render a duration of client_count Client's request activity.  Each Client_hApp represents a set of
+# hApp client groups w/ a certain average midday peak load and standard distribution.  Create
+# clients that request a certain standard distribution of Holo Hosting load per hour.  Each of the
+# clients will represent a pool of users in that time zone, w/ some mean request rate (denominated
+# in 'holo': Hosting-months of wall-clock request duration), in a standard distribution around some
+# peak midday mean time.  
 # 
 client_count                    = 25
+
+# Peak session load at "midday" hour; compute 'holo' (Holo hosting-core-months) used to satisfy requests
+# 1000 * 100 * 10 / 2.62e6 =~= 0.382 'holo' per peak hour
+requests_clients		= 1000
+requests_per_session		= 100 # eg. a browsing Facebook, booking a vacation
+ms_per_request			= 10 # wall-clock duration probably higher, due to blocking I/O
+requests_mean			= client_sessions * requests_per_session * ms_per_request / trading.month
+requests_sigma			= requests_mean * 0.2 # +/- 20% w/in 1 sigma
+print( "Client 'holo' mean: {} +/- {}".format( request_mean, request_sigma ))
 sim_duration                    = 5 * trading.day
 
 clients                         = [ Client_hApp(
-                                        identity        = "Cli/hApp{}".format( n ),
-                                        midday_mean     = midday_mean )
+                                        identity        = "hApp {}".format( n ),
+                                        midday_mean     = midday_mean,
+                                        requests_mean   = requests_mean,
+                                        requests_sigma  = requests_sigma,
+                                        requests_clients= requests_clients )
                                     for n,midday_mean in enumerate( population_middays( client_count, 'NA', 'Asia' )) ]
 
 
 res                             = reserve_issuing( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
-wld                             = trading.world( duration=sim_duration, quanta=trading.hour / 4 ) # 2x Nyquise
-eng                             = Sample_engine( world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 )
+wld                             = trading.world( duration=sim_duration, quanta=trading.hour ) 
+eng                             = Sample_engine_inc_clients(
+                                      world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 ) # Nyquist
 print( str( eng.world ))
 eng.run()
 print( "Done: %s" % ( eng.world ))
 
 
-x_now,y_req,y_avg               = [],[],[]
+x_now,y_cap,y_req,y_avg         = [],[],[],[]
 if eng.requests:
-    x_now,y_req,y_avg           = zip( *eng.requests )
+    x_now,y_cap,y_req,y_avg     = zip( *eng.requests )
 
 fig,ax = plt.subplots()
 plt.plot( x_now, y_req, label="Requests/hour" )
@@ -1117,11 +1211,10 @@ formatter = matplotlib.ticker.FuncFormatter( lambda s, x: '%dd%02d:%02d' % (
 ax.xaxis.set_major_formatter( formatter )
 fig.autofmt_xdate()
 plt.xlabel( "Hours" )
-plt.ylabel( "Requests" )
+plt.ylabel( "Core-months" )
 plt.legend( loc="upper right" )
 plt.title( "Hourly Request rate" )
 plt.show()
-
     #+END_SRC
     #+RESULTS:
     :RESULTS:
@@ -1134,14 +1227,12 @@ plt.show()
     out.  Of course, we'll spread out the midday times to simulate loads coming from various sizes
     of populations.
 
-    The request rate is dimensionless; we'll assume that it is denominated in 'holo'; 1 'holo' hour
-    is 1 hour of wall-clock duration worth of requests served by a Host.  This is generally linearly
-    related to the number of cores on the Host, but is also affected the CPU speed, RAM speed,
-    bandwidth and latency and storage speed.  We'll assume our Hosts are pretty homogeneous;
-    basically, 1 hour of 'holo' requires 1 Host for 1 hour; to scale up to service 100 more 'holo'
-    per hour requires 100 more Holo hosts.
+    The request rate is load/capacity is denominated in 'holo'; 1 'holo' is 1 core-month of requests
+    served by a Host.  This capacity is generally linearly related to the number of cores on the
+    Host, but is also affected the CPU speed, RAM speed, bandwidth and latency and storage speed.
+    We'll assume our Hosts are pretty homogeneous.
 
-    This specifies the load exerted on the Hosts, and the hosting payment due by the hApp owners.  
+    We'll increase the number of simulated Clients over the period of the test.
 
     Instead of simulating the hApp owner buying Holo fuel and paying it to the Host, we'll simply
     have the Clients directly buy the Holo fuel required to service their requests.  Like a hApp
@@ -1158,33 +1249,57 @@ plt.show()
     #+LATEX: {\scriptsize
     #+BEGIN_SRC ipython :session :file images/client-holdings.png :exports both :results raw drawer
 
-fig,(ax0,ax1,ax2)= plt.subplots( 3, sharex=True, figsize=(6,3) )
+fig,(ax0,ax1,ax2,ax3,ax4,ax5)= plt.subplots( 6, sharex=True, figsize=(6,6) )
 
-ax0.plot( [ x for x,h in eng.hApp_holdings ], [h['Holofuel'] for x,h in eng.hApp_holdings ],
+ax0.plot( [ x for x,a in eng.hApp_holdings ], [a['Holofuel'] for x,a in eng.hApp_holdings ],
                label='Client/hApp Holofuel held' )
+ax0.plot( [ x for x,h in eng.Host_holdings ], [h['Holofuel'] for x,h in eng.Host_holdings ],
+               label='Host Holofuel' )
 ax0.fmt_ydata = lambda x: '%.2f' % x
 ax0.grid( True )
 ax0.set_ylabel( 'Holofuel' )
 
 ax1.plot( [ x for x,h in eng.hApp_holdings ], [h['USD'] for x,h in eng.hApp_holdings ],
                label='Client/hApp USD' )
+ax1.plot( [ x for x,h in eng.Host_holdings ], [h['USD'] for x,h in eng.Host_holdings ],
+               label='Host USD' )
 ax1.fmt_ydata = lambda x: '%.2f' % x
 ax1.grid( True )
 ax1.set_ylabel( 'USD' )
 
-ax2.plot( [ x for x,h in eng.Host_holdings ], [h['Holofuel'] for x,h in eng.Host_holdings ],
-               label='Host Holofuel' )
-ax2.fmt_ydata = lambda x: '%.2f' % x
+ax2.plot( [ x for x,cap,req,rav in eng.requests ], [ req/cap * 100 if cap else 0 for x,cap,req,rav in eng.requests ],
+               label='Utilization' )
+ax2.fmt_ydata = lambda x: '%.0f%%' % x
 ax2.grid( True )
-ax2.set_ylabel( 'Holofuel' )
+ax2.set_ylabel( 'Percent' )
 
-ax2.set_xlabel( "Time (hours)" )
+ax3.plot( [ x for x,cores in eng.cores ], [ cores for x,cores in eng.cores ],
+               label='Cores' )
+ax3.fmt_ydata = lambda x: '%.0f' % x
+ax3.grid( True )
+ax3.set_ylabel( 'Cores' )
+
+ax4.plot( [ x for x,cli in eng.clients ], [ cli for x,cli in eng.clients ],
+               label='Clients' )
+ax4.fmt_ydata = lambda x: '%.0f' % x
+ax4.grid( True )
+ax4.set_ylabel( 'Clients' )
+
+ax5.plot( [ x for x,cap,req,rav in eng.requests ], [ req for x,cap,req,rav in eng.requests ],
+               label='Client load' )
+ax5.plot( [ x for x,cap,req,rav in eng.requests ], [ cap for x,cap,req,rav in eng.requests ],
+               label='Host capacity' )
+ax5.fmt_ydata = lambda x: '%.0f' % x
+ax5.grid( True )
+ax5.set_ylabel( "'holo'" )
+
+ax5.set_xlabel( "Time (hours)" )
 formatter = matplotlib.ticker.FuncFormatter( lambda s, x: '%dd%02d:%02d' % (
     s // trading.day, ( s % trading.day ) // trading.hour, ( s % trading.hour ) // trading.minute ))
-ax2.xaxis.set_major_formatter( formatter )
+ax4.xaxis.set_major_formatter( formatter )
 fig.autofmt_xdate()
 
-for a in ax0,ax1,ax2:
+for a in ax0,ax1,ax2,ax3,ax4,ax5:
     a.legend( loc="right" )
 
     #+END_SRC
@@ -1196,4 +1311,8 @@ for a in ax0,ax1,ax2:
 
     This illustrates the creation of Holo fuel via Reserves at a fixed issuance rate of
     USD$1/Holofuel.  No other sellers are available, so Client/hApp buyers are forced to purchase at
-    the Reserve's issuance rate.
+    the Reserve's issuance rate.  The Host's charged prices in Holo fuel are fixed, and the hApp
+    owners are willing and able to pay whatever is demanded.  Of course, none of these assumptions
+    reflect a real marketplace.
+
+    
