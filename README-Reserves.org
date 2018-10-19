@@ -180,9 +180,15 @@ import matplotlib.pyplot as plt
 plt.rcParams["figure.figsize"]  = (6,3)
 plt.rcParams["font.size"]       = 6
 
+# 
+# Simulation parameters
+# 
+sim_duration                    = 14 * trading.day
+
+
 logging.basicConfig(
     stream=sys.stdout,
-    level=logging.WARNING, # .DEBUG
+    level=logging.WARNING, # INFO, DEBUG,
     datefmt='%Y-%m-%d %H:%M:%S',
     format='%(asctime)s.%(msecs).03d %(threadName)10.10s %(name)-8.8s %(levelname)-8.8s %(funcName)-10.10s %(message)s' )
 
@@ -211,10 +217,6 @@ ax1.axis( 'equal' ) # Equal aspect ratio ensures that pie is drawn as a circle.
 plt.title( "Relative Currency Desirability" )
 plt.show()
 
-[ [ 'Currency', 'Desirability' ], None ] \
-+ [ [ curr, "%.4f" % ( desi ) ]
-    for curr,desi in zip( currencies, desirability ) ]
-
   #+END_SRC
   #+RESULTS:
   :RESULTS:
@@ -227,15 +229,15 @@ plt.show()
   #+LATEX: {\scriptsize
   #+BEGIN_SRC ipython :session :exports both :results raw drawer
 
-# 
-# Load some exchange rates.  Convert observations:
-#  
-#  [ { "d": "2017-01-03", "FXAUDCAD": { "v": 0.9702 }, ...},
-#    { "d": "2017-01-04" ... }, ... ]
-# to rates:
-#  { "2017-01-03": { "USD/CAD": 1.29, "CAD/USD": 0.775, "USD/EUR": ... }, "2017-01-04": { ... } }
-# 
 class Rates( object ):
+    """Load some exchange rates.  Convert observations:
+      
+       [ { "d": "2017-01-03", "FXAUDCAD": { "v": 0.9702 }, ...},
+         { "d": "2017-01-04" ... }, ... ]
+     to rates:
+       { "2017-01-03": { "USD/CAD": 1.29, "CAD/USD": 0.775, "USD/EUR": ... }, "2017-01-04": { ... } }
+     
+     """
     def __init__( self, fx_rates ):
         rates_data              = json.loads( open( fx_rates ).read() )
         self.rates              = {}
@@ -255,7 +257,7 @@ class Rates( object ):
         logging.debug( "Rates: %d days loaded: %s, ...", len( self.days ), json.dumps( self.rates[self.days[0]], indent=4 ))
 
     def seconds_to_day( self, seconds ):
-        """Given a 'now' offset in seconds from 0, compute the current day"""
+        """Given a 'now' offset in seconds from 0, compute the current day, relative to the first available rate data point"""
         dt                      = datetime.strptime( self.days[0], '%Y-%m-%d' )
         dt                     += timedelta( seconds=seconds )
         return dt.strftime( '%Y-%m-%d' )
@@ -341,6 +343,12 @@ class Host( trading.agent ):
         self.capacity_sigma     = capacity_sigma
         self._capacity          = rnd_std_dst( mean=self.capacity_mean, sigma=self.capacity_sigma, minimum=0 )
 
+    def sells_to( self, another ):
+        """Hosts only sell (redeem) Holo fuel to reserves in this simulation. """
+	allowed			= isinstance( another, reserve ) and super( Host, self ).sells_to( another )
+        logging.info( "%s buys from %s: %s", self, another, allowed )
+        return allowed
+
     @property
     def capacity( self ):
         return self._capacity * self.capacity_multiplier
@@ -367,7 +375,7 @@ class Host( trading.agent ):
                 rate_exch               = rates.exchange( day, fr=curr_exch, to=curr )
                 rate_redeem             = rate_min * rate_exch
                 if math.isnan( rate_exch ) or math.isnan( rate_redeem ):
-                    print( "For %s on %s, minimum: %s, %s/%s exchange rate: %s" % (
+                    logging.warning( "For %s on %s, minimum: %s, %s/%s exchange rate: %s" % (
                         curr, day, rate_min, curr_exch, curr, rate_exch ))
                 return rate_redeem
         # No target currency w/ minimum rate: "market" rates are desired
@@ -377,24 +385,29 @@ class Host( trading.agent ):
         """Runs the Host trading.actor's needs/targets and issues trades as required to get self.targets
         satisfied.  Hosts will manually sell their holdings when Reserve prices hit their targets; so, list
         our holdings at our target price.
-        """
+
+        We will make these trades "old"; they are basically standing orders, and should get the best
+        price available from the Reserves.  Since the holofuel.model.trading.exchange gives the
+        spread to the trade carrying the most risk (the "market" order, or the oldest limit order),
+        this will ensure that the Host always get the benefit of the best bid (buy) price the
+        Reserve (or other party) has to offer.  """
+
         if not super( Host, self ).run( exch=exch, now=now ):
             return False # Quanta not yet satisfied; do nothing
-	# Enabling this kills reserves_issuing... Fix it so Reserves will buy at their bid price,
-	# regardless of what Hosts are willing to sell at.  Right now, the "oldest" of the bid/ask gets the better
-	# price (the spread).  Perhaps always make the time on the Reserve bid with a far future timestamp?
-	return True # NO-OP for now.
+        # Enabling this kills reserves_issuing... Fix it so Reserves will buy at their bid price,
+        # regardless of what Hosts are willing to sell at.  Right now, the "oldest" of the bid/ask gets the better
+        # price (the spread).  Perhaps always make the time on the Reserve bid with a far future timestamp?
+        #return True # NO-OP for now.
         if self.assets.get( 'Holofuel' ): # not None/0:
             day                 = rates.seconds_to_day( seconds=now )
             amount              = self.assets['Holofuel']
             price               = self.redemption_rate( day=day, curr=exch.currency )
-	    if price:
-	        # This Host has specified a redemption rate for this currency (eg. USD); if True, this means market rates
-		if price is True:
-		    price	= None
-		logging.info( "{} selling {} Holo fuel at {} at exch rate of day {}".format( str( self ), amount, price, day ))
-		exch.sell( agent=self, amount=amount, price=price, security='Holofuel', now=now, update=True )
-	    
+            if price:
+                # This Host has specified a redemption rate for this currency (eg. USD); if True, this means market rates
+                if price is True:
+                    price       = None
+                logging.info( "{} selling {} Holo fuel at {} at exch rate of day {}".format( str( self ), amount, price, day ))
+                exch.sell( agent=self, amount=amount, price=price, security='Holofuel', now=0, update=True )
 
 # 
 # Compute a number of Host w/ varying numbers of desired currencies and target exchange rates
@@ -470,13 +483,13 @@ for curr in currencies:
   |          |          |  3/ea +/-2 |    Rate |         |         |
   | Currency | % Weight | % Selected |    Mean |  Median | Std.Dev |
   |----------+----------+------------+---------+---------+---------|
-  | USD      |     20.2 |       52.0 |  0.3332 |  0.3290 |  0.1646 |
-  | EUR      |      9.6 |       32.0 |  0.3180 |  0.3163 |  0.1555 |
-  | CAD      |     10.9 |       52.0 |  0.4714 |  0.4569 |  0.1810 |
-  | CNY      |      3.9 |       12.0 |  2.7994 |  3.0419 |  0.4337 |
-  | RUB      |     45.7 |       68.0 | 20.1569 | 19.9999 |  8.9198 |
-  | TRY      |      6.6 |       24.0 |  1.0484 |  1.1290 |  0.5356 |
-  | HOT      |      3.1 |       28.0 |  1.0000 |  1.0000 |  0.0000 |
+  | USD      |     17.0 |       52.0 |  0.3332 |  0.3077 |  0.1773 |
+  | EUR      |     34.9 |       44.0 |  0.4276 |  0.3900 |  0.2135 |
+  | CAD      |     14.4 |       36.0 |  0.5928 |  0.5450 |  0.2437 |
+  | CNY      |      4.4 |       20.0 |  2.4861 |  2.3379 |  0.6532 |
+  | RUB      |      3.8 |       20.0 | 24.9872 | 21.5648 |  9.0363 |
+  | TRY      |      8.5 |       16.0 |  1.8699 |  2.4208 |  0.7175 |
+  | HOT      |     17.1 |       48.0 |  1.0000 |  1.0000 |  0.0000 |
   :END:
   #+LATEX: }
 
@@ -1022,7 +1035,7 @@ class Client_hApp( trading.actor ):
             requests_clients = 2500,                            # This represents this many clients (lower == heavier hApp)
             quanta = 1 * trading.hour,                          # compute next hour's requests hourly
             requests_avg_dur = 2 * trading.day,                 # keep ?-day rolling average of request rate
-            holofuel_runway = 7 * trading.day,                  # target this many day's fuel on hand
+            holofuel_runway = 1 * trading.day,                  # target this many day's fuel on hand
             minimum = -math.inf, **kwds ):                      # allow client to go into debt
         # dummy (zero) 'needs'; adjust targets manually, but ensures that Holofuel target satsifying
         # trades are executed.
@@ -1102,7 +1115,7 @@ class Client_hApp( trading.actor ):
         except KeyError: host.assets['Holofuel']  = +cost
         try:             self.assets['Holofuel'] += -cost
         except KeyError: self.assets['Holofuel']  = -cost
-        print( "Transferring {} Holofuel from {} to {}: {}".format( cost, str( self ), str( host ), repr( host.assets )))
+        logging.info( "Transferring {} Holofuel from {} to {}: {}".format( cost, str( self ), str( host ), repr( host.assets )))
         # Compute our next hour's Request rate, based on time of day
         self.compute_requests_rate( now=self.now )
 
@@ -1154,7 +1167,7 @@ class Sample_engine( trading.engine_status ):
             'USD':      sum( c.balances.get( 'USD' ) or 0 for c in self.Hosts ),
             'Holofuel': sum( c.assets.get( 'Holofuel' ) or 0 for c in self.Hosts )
         }) )
-        print( "{}: Holofuel Target: {}, Holdings: {}, USD: {} Order Book:\n{}".format( 
+        logging.info( "{}: Holofuel Target: {}, Holdings: {}, USD: {} Order Book:\n{}".format( 
             str( self.world ), 
             sum( c.target.get( 'Holofuel' ) or 0 for c in self.hApps ),
             sum( c.assets.get( 'Holofuel' ) or 0 for c in self.hApps ),
@@ -1166,9 +1179,9 @@ class Sample_engine_inc_clients( Sample_engine ):
         try:
             return super( Sample_engine_inc_clients, self ).status( now )
         finally:
-            # Adjust the simulation on each status cycle.  
-            # Increase client load by 2% / period
-            Client_hApp.requests_clients_multiplier *= 1.02
+            # Adjust the simulation on each status cycle.  Increase client load by 1.25% / period,
+            # declining over the duration of the simulation
+            Client_hApp.requests_clients_multiplier *= ( 1.0 + .0125 * ( 1 - now / sim_duration ))
 
 # 
 # Create varying populations with different request activity times
@@ -1190,8 +1203,8 @@ def population_middays( count, *matches ): # eg. 'NA', 'Asia'; empty matches == 
     pop_prob                   /= np.sum( pop_prob ) # normalize sum of probabilites to 1.0
     pop_tz                      = [ p.tz for p in pops_selected ]
     pop_middays                 = np.random.choice( a=pop_tz, size=count, replace=True, p=pop_prob )
-    print( ', '.join( "{:>10}: UTC {:+d} P({:.2f}):".format( locale, tz, prob )
-                      for locale,prob,tz in zip( (p.locale for p in pops_selected ), pop_prob, pop_tz )))
+    #print( ', '.join( "{:>10}: UTC {:+d} P({:.2f}):".format( locale, tz, prob )
+    #                  for locale,prob,tz in zip( (p.locale for p in pops_selected ), pop_prob, pop_tz )))
     return pop_middays
 
 
@@ -1212,8 +1225,6 @@ requests_per_session            = 100 # eg. a browsing Facebook, booking a vacat
 ms_per_request                  = 10 # wall-clock duration probably higher, due to blocking I/O
 requests_mean                   = requests_clients * requests_per_session * ms_per_request / trading.month
 requests_sigma                  = requests_mean * 0.2 # +/- 20% w/in 1 sigma
-print( "Client 'holo' mean: {} +/- {}".format( requests_mean, requests_sigma ))
-sim_duration                    = 5 * trading.day
 
 clients                         = [ Client_hApp(
                                         identity        = "hApp {}".format( n ),
@@ -1224,13 +1235,29 @@ clients                         = [ Client_hApp(
                                     for n,midday_mean in enumerate( population_middays( client_count, 'NA', 'Asia' )) ]
 
 
-res                             = reserve_issuing( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
+class reserve_redeeming_Hosts( reserve_issuing ):
+    """Only allow our market-maker to buy (redemm) Holo fuel from Hosts.  We'll sell Holo fuel to anyone,
+    and other actors may trade with eachother, but our own tranches are unavailable to anyone but Hosts.
+
+    TODO: Interogate Hosts, and ensure that they cannot redeem more Holo fuel than they have earned
+    due to Hosting.
+    """
+    def __init__( self, *args, **kwds ):
+        super( reserve_redeeming_Hosts, self ).__init__( *args, **kwds )
+
+    def buys_from( self, another ):
+        allowed			= isinstance( another, Host ) and super( reserve_redeeming_Hosts, self ).buys_from( another )
+        logging.info( "%s buys from %s: %s", self, another, allowed )
+        return allowed
+
+
+res                             = reserve_redeeming_Hosts( "Holofuel/USD", LIFO=True, supply_period=trading.hour, supply_available=1e6 )
 wld                             = trading.world( duration=sim_duration, quanta=trading.hour ) 
 eng                             = Sample_engine_inc_clients(
                                       world=wld, exch=res, agents=clients + hosts, status_period=1 * trading.hour / 2 ) # Nyquist
-print( str( eng.world ))
+#print( str( eng.world ))
 eng.run()
-print( "Done: %s" % ( eng.world ))
+#print( "Done: %s" % ( eng.world ))
 
 
 x_now,y_cap,y_req,y_avg         = [],[],[],[]
@@ -1344,9 +1371,11 @@ for a in ax0,ax1,ax2,ax3,ax4,ax5:
     #+LATEX: }
 
     This illustrates the creation of Holo fuel via Reserves at a fixed issuance rate of
-    USD$1/Holofuel.  No other sellers are available, so Client/hApp buyers are forced to purchase at
-    the Reserve's issuance rate.  The Host's charged prices in Holo fuel are fixed, and the hApp
-    owners are willing and able to pay whatever is demanded.  Of course, none of these assumptions
-    reflect a real marketplace.
+    USD$1/Holofuel.  No other sellers are initially available, so Client/hApp buyers are forced to
+    purchase at the Reserve's issuance rate.  Once Hosts have Holo fuel, they begin to cash
+    out at their desired exchange rate.
+
+    The Host's charged prices in Holo fuel are fixed, and the hApp owners are willing and able to
+    pay whatever is demanded.  Of course, none of these assumptions reflect a real marketplace.
 
     
