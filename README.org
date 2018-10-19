@@ -2,6 +2,7 @@
 #+STARTUP: org-startup-with-inline-images inlineimages
 #+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
 #+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
+#+LATEX_HEADER: \usepackage{draftwatermark}
 
 \begin{abstract}
 

@@ -2,6 +2,7 @@
 #+STARTUP: org-startup-with-inline-images inlineimages
 #+OPTIONS: ^:nil # Disable sub/superscripting with bare _; _{...} still works
 #+LATEX_HEADER: \usepackage[margin=1.0in]{geometry}
+#+LATEX_HEADER: \usepackage{draftwatermark}
 
 \begin{abstract}
 
@@ -493,7 +494,6 @@ for curr in currencies:
   :END:
   #+LATEX: }
 
-
 ** Host Auto-pilot Pricing
 
    A Host can specify rates to charge for its various computational resources, in Holo Fuel, or it
@@ -694,43 +694,46 @@ for curr in currencies:
      - A 1% fee for microtransactions is excellent, and completely out of reach for competing system
      - For larger transactions, it is wildly overpriced vs. all competing services (except credit
        cards, pay-day loans, etc.)
-     - For inter-account transfers, it eliminates essentially all account maintenance activities
-       (eg. banking)
+     - For inter-account transfers, a 1% fee eliminates the possibility of essentially all account
+       maintenance activities (eg. day to day banking and separate savings accounts, etc.)
 
      Capping transaction fees and a sliding scale would address these issues.  These should be tuned
      over time to maximize income and remain competitive:
 
-     |  Fee | Tx Size       | Cap        | Transaction Type                                |
-     |------+---------------+------------+-------------------------------------------------|
-     |   0% | all           | 0          | Transfers between accounts within DPKI identity |
-     |   1% | < ~USD$10     | ~USD$0.01  | Microtransaction and small retail               |
-     |  .1% | < ~USD$10,000 | ~USD$1     | Typical consumer retail transactions            |
-     | .01% | >=~USD$10,000 | ~USD$1,000 | Large transactions                              |
+     |   Fee | Tx Size       | Cap        | Transaction Type                                       |
+     |-------+---------------+------------+--------------------------------------------------------|
+     |    0% | all           | 0          | Transfers between accounts *within* same DPKI identity |
+     |    1% | < ~USD$10     | ~USD$0.01  | Microtransaction and small retail                      |
+     |  0.1% | < ~USD$10,000 | ~USD$1     | Typical consumer retail transactions                   |
+     | 0.01% | >=~USD$10,000 | ~USD$1,000 | Large transactions                                     |
 
      Existing Fiat payment systems (eg. Credit/Debit cards, cheques, bank accounts, etc.) and global
-     consensus Cryptocurrency systems cannot do microtransactions or small retail at all, let alone
-     at a competitive cost.  Gaining access to the *huge* microtransaction and small retail space is
-     critical to the uptake of Holo fuel, and capping the fees at ~USD$0.01 (1 cent) the Holo fuel
-     equivalent of < ~USD$10.00 purchases will be acceptable, and will cover the vast majority of
-     transactions.  The only transactions that will produce reduced Holo system fees are those
-     between ~USD$1.00-10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.
-     These transactions are in the gray area where existing Cryptocurrencies have similar fees on
-     this scale of transactions; this cap would establish Holo fuel as a clear winner against
-     existing Cryptocurrencies, and every Fiat currency payment processing system.
+     consensus Cryptocurrency systems cannot do microtransactions or small retail efficiently at
+     all, let alone at a competitive cost (consumers only *think* they can, because all of these
+     costs are hidden from them).  Gaining access to the *huge* microtransaction and small retail
+     space is critical to the uptake of Holo fuel, and capping the fees at ~USD$0.01 (1 cent) the
+     Holo fuel equivalent of < ~USD$10.00 purchases will be acceptable, and will cover the vast
+     majority of transactions.  The only transactions that will produce reduced Holo system fees are
+     those between ~USD$1.00-10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.  These
+     transactions are in the gray area where existing Cryptocurrencies have similar fees on this
+     scale of transactions; this cap would establish Holo fuel as a clear winner against existing
+     Cryptocurrencies, and every Fiat currency payment processing system.
 
-     Transactions between ~USD$10-$10,000.00 are the bulk of normal consumer retail
-     transactions.  Most importantly, these are the short-term savings stock and day-to-day retail
-     flow of money; by far the largest pool of savings and monetary velocity.
+     Transactions between ~USD$10-$10,000.00 are the bulk of normal consumer retail transactions,
+     and the the most price sensitive.  Most importantly, these are the personal short-term savings
+     "stock" and day-to-day retail "flow" of money; by far the largest pool of savings and monetary
+     velocity.
 
-     A fee of 1% on these purchases would be considered onerous vs. virtually any other payment
-     system.  Presently, retailers do bear significant losses due to fees on these transactions in
-     Fiat currencies -- but this is largely hidden from consumers by contractually enforced (and
-     craftily mandated) bundling of these fees into overall retail sales overheads.
+     A fee of 1% on these purchases (or account maintenance activities) would be considered onerous
+     vs. virtually any other payment system.  Presently, retailers do bear significant losses due to
+     fees on these transactions in Fiat currencies -- but this is largely hidden from consumers by
+     contractually enforced (and craftily mandated) bundling of these fees into overall retail sales
+     overheads.
 
      This is also the range where existing cryptocurrencies excel; the fees are much lower than for
      Fiat systems.  For Holo fuel, consumers would not be happy paying a USD$10 direct fee (1%) on a
      USD$1,000 bicycle, or an extra USD$100 on a used car purchase, and it materially would affect
-     usage of Holo fuel for general retail purchases of all sizes.  By limiting the fees at .1% on
+     usage of Holo fuel for general retail purchases of all sizes.  By limiting the fees at 0.1% on
      USD$10-$1,000 (fees of USD$0.01-$1.00), and capping USD$1,000-$10,000 to a max. USD$1.00 fee,
      the fee ceases to be a negative psychological factor in these purchases; Holo fuel will be the
      lowest cost option available for retail level savings and transactions.
@@ -741,13 +744,13 @@ for curr in currencies:
      than for micro/small transactions.
 
      For large transactions, once again cryptocurrency excels.  However, businesses would likely
-     find a .1% fee on *all* their earnings significant; A business that earns USD$1,000,000/yr
+     find a 0.1% fee on *all* their earnings significant; A business that earns USD$1,000,000/yr
      would bear an additional USD$1,000 expense due to accepting Holo fuel.  This would be
      noticeable to accountants and business owners, and would affect uptake negatively.  By limiting
      this to .01% and capping fees at USD$1,000, the fees on USD$10,000-10,000,000 would be
      USD$1-1,000 on large transactions; roughly the cost in annual fees for a business bank account.
      This would ameliorate any objections to Holo fuel uptake at the boardroom level.  Once again, a
-     1% or .1% fee would be a non-starter, so any losses in fee income to Holo are imaginary.
+     1% or 0.1% fee would be a non-starter, so any losses in fee income to Holo are imaginary.
 
      Finally, since Holo fuel and the Holo Reserve ecosystem need to be able to identify accounts
      belonging to Holo Host DPKI identities in order to authorize access to Reserves, the
