@@ -151,7 +151,7 @@ stability plateau where Holo fuel becomes extremely useful as general "money".
   Lets select a few currencies, with varying levels of desirability for Holo Hosts to cash out with:
 
   #+LATEX: {\scriptsize
-  #+BEGIN_SRC ipython :session :file images/currency-pie.png :exports both :results raw drawer
+  #+BEGIN_SRC ipython :session :ipyfile images/currency-pie.png :exports both :results raw drawer
 
 %matplotlib inline
 %config InlineBackend.figure_format = 'retina'
@@ -181,11 +181,6 @@ import matplotlib.pyplot as plt
 plt.rcParams["figure.figsize"]  = (6,3)
 plt.rcParams["font.size"]       = 6
 
-# 
-# Simulation parameters
-# 
-sim_duration                    = 14 * trading.day
-
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -195,6 +190,11 @@ logging.basicConfig(
 
 from holofuel.model import trading
 from holofuel.model.reserve_lifo import reserve, reserve_issuing
+
+# 
+# Simulation parameters
+# 
+sim_duration                    = 14 * trading.day
 
 def rnd_std_dst( sigma, mean=0, minimum=None, maximum=None ):
     """Random values with mean, in a standard distribution w/ sigma, clipped to given minimum/maximum."""
@@ -703,7 +703,7 @@ for curr in currencies:
      |   Fee | Tx Size       | Cap        | Transaction Type                                       |
      |-------+---------------+------------+--------------------------------------------------------|
      |    0% | all           | 0          | Transfers between accounts *within* same DPKI identity |
-     |    1% | < ~USD$10     | ~USD$0.01  | Microtransaction and small retail                      |
+     |    1% | < ~USD$100    | ~USD$0.10  | Microtransaction and small retail                      |
      |  0.1% | < ~USD$10,000 | ~USD$1     | Typical consumer retail transactions                   |
      | 0.01% | >=~USD$10,000 | ~USD$1,000 | Large transactions                                     |
 
@@ -711,15 +711,15 @@ for curr in currencies:
      consensus Cryptocurrency systems cannot do microtransactions or small retail efficiently at
      all, let alone at a competitive cost (consumers only *think* they can, because all of these
      costs are hidden from them).  Gaining access to the *huge* microtransaction and small retail
-     space is critical to the uptake of Holo fuel, and capping the fees at ~USD$0.01 (1 cent) the
-     Holo fuel equivalent of < ~USD$10.00 purchases will be acceptable, and will cover the vast
+     space is critical to the uptake of Holo fuel, and capping the fees at ~USD$0.10 (10 cents) the
+     Holo fuel equivalent of < ~USD$100.00 purchases will be acceptable, and will cover the vast
      majority of transactions.  The only transactions that will produce reduced Holo system fees are
-     those between ~USD$1.00-10.00.  Instead of the USD$.10 fee, we Holo would earn USD$0.01.  These
-     transactions are in the gray area where existing Cryptocurrencies have similar fees on this
-     scale of transactions; this cap would establish Holo fuel as a clear winner against existing
-     Cryptocurrencies, and every Fiat currency payment processing system.
+     those between ~USD$10.00-100.00.  Instead of the USD$1.00 fee on a $100 purchase, Holo would
+     earn USD$0.10.  These transactions are in the gray area where existing Cryptocurrencies have
+     similar fees on this scale of transactions; this cap would establish Holo fuel as a clear
+     winner against existing Cryptocurrencies, and every Fiat currency payment processing system.
 
-     Transactions between ~USD$10-$10,000.00 are the bulk of normal consumer retail transactions,
+     Transactions between ~USD$100-$10,000.00 are the bulk of larger consumer retail transactions,
      and the the most price sensitive.  Most importantly, these are the personal short-term savings
      "stock" and day-to-day retail "flow" of money; by far the largest pool of savings and monetary
      velocity.
@@ -734,9 +734,9 @@ for curr in currencies:
      Fiat systems.  For Holo fuel, consumers would not be happy paying a USD$10 direct fee (1%) on a
      USD$1,000 bicycle, or an extra USD$100 on a used car purchase, and it materially would affect
      usage of Holo fuel for general retail purchases of all sizes.  By limiting the fees at 0.1% on
-     USD$10-$1,000 (fees of USD$0.01-$1.00), and capping USD$1,000-$10,000 to a max. USD$1.00 fee,
-     the fee ceases to be a negative psychological factor in these purchases; Holo fuel will be the
-     lowest cost option available for retail level savings and transactions.
+     USD$100-$10,000 and capping to a max USD$1.00, the fee ceases to be a negative psychological
+     factor in these purchases; Holo fuel will be the lowest cost option available for retail level
+     savings and transactions.
      
      The losses due to this fee/cap are likely to be negligible, since Holo fuel would not have been
      competitive for these transactions anyway, and would not likely have been used.  Now, Holo
@@ -744,13 +744,14 @@ for curr in currencies:
      than for micro/small transactions.
 
      For large transactions, once again cryptocurrency excels.  However, businesses would likely
-     find a 0.1% fee on *all* their earnings significant; A business that earns USD$1,000,000/yr
-     would bear an additional USD$1,000 expense due to accepting Holo fuel.  This would be
-     noticeable to accountants and business owners, and would affect uptake negatively.  By limiting
-     this to .01% and capping fees at USD$1,000, the fees on USD$10,000-10,000,000 would be
-     USD$1-1,000 on large transactions; roughly the cost in annual fees for a business bank account.
-     This would ameliorate any objections to Holo fuel uptake at the boardroom level.  Once again, a
-     1% or 0.1% fee would be a non-starter, so any losses in fee income to Holo are imaginary.
+     find a 0.1% fee on *all* their earnings, payroll and supplier payments significant; A small
+     business that earns USD$1,000,000/yr would bear an additional USD$1,000 expense due to
+     accepting Holo fuel.  This would be noticeable to accountants and business owners, and would
+     affect uptake negatively.  By limiting this to .01% and capping fees at USD$1,000, the fees on
+     USD$10,000-10,000,000 would be USD$1-1,000 on large transactions; roughly comparable to the
+     cost in annual fees for a business bank account.  This would ameliorate any objections to Holo
+     fuel uptake at the boardroom level.  Once again, a 1% or 0.1% fee would be a non-starter, so
+     any losses in fee income to Holo are imaginary.
 
      Finally, since Holo fuel and the Holo Reserve ecosystem need to be able to identify accounts
      belonging to Holo Host DPKI identities in order to authorize access to Reserves, the
@@ -847,7 +848,7 @@ for curr in currencies:
         - Defined by the market value of the underlying Holo computation system 
     - The price of a unit of Holo fuel in various Fiat currencies (eg. exchange rate to USD$)
       - What will I earn when I sell that fuel on the Reserves or other exchanges?
-        - Defined by what the market believes Holo fuel is "worth"; Utility + 
+        - Defined by what the market believes Holo fuel is "worth"; (Utility + Purchasing Power) / Supply
 
     Fixing the value-stability of Holo fuel is *independent* of the amount of compute resources the
     Host eventually redeems in Fiat currency; it doesn't matter if 1 month of compute resources is
@@ -858,7 +859,7 @@ for curr in currencies:
 
     Removing this one degree of freedom from the Holo fuel system does *not* restrict the market's
     ability to price Holo hosting!  The market price (how many USD$ buys 1 Holo-month of hosting) is
-    arrived at by the market reaching equilibrium.  What everyone *does* now, however, is how much 1
+    arrived at by the market reaching equilibrium.  What everyone *does* know, however, is how much 1
     Holo represents in terms of Holo hosting computational resources.  This allows Holo fuel to act
     both as a medium of exchange (which does not require value stability), *and* as a value
     reference (which *does* require stability in terms of some reference commodity basket.)  Both
@@ -881,7 +882,7 @@ for curr in currencies:
     on the amount available for Holo hApp owners to purchase to buy Holo hosting.  If all HOT$177e9
     is available (nobody uses/saves it for anything else), and it starts at the current
     USD$0.001/Holo fuel, the total in circulation is worth USD$177,000,000.  To get 12 circulations
-    of that Holo fuel per hear (Holo hApps and Hosts only saving about 1 month's worth), the compute
+    of that Holo fuel per year (Holo hApps and Hosts only saving about 1 month's worth), the compute
     infrastructure would have to be worth about USD$2.2 billion / year in sales -- about 1/6th the
     scale of Amazon AWS (which earned USD$3.3 billion in 2017 on USD$12.2 billion in sales).  Since
     Holo can be deployed on commodity hardware, but doesn't support commodity disk images (only
@@ -901,13 +902,14 @@ for curr in currencies:
     
     Quenching deflation (decreasing commodity prices, increasing per-unit value) at a certain target
     unit value is simple, as long as enough people have attached enough wealth to the system: begin
-    issuing Holo fuel credit against wealth (eg. the net present value of a Holo hosting service).
-    Even if that target value is low (say, USD$0.01 or USD$1.77 billion, and if the Holo system
-    generated USD$5.00 per core per month in revenue, the NPV of one year's worth of 1 core worth
-    (USD$60) of hosting at a 10% discount rate is USD$54.55.  Estimating a credit factor of 50%,
-    that results in USD$27.27 of credit extended per core. Extending approximately the same amount
-    of credit as the valuation of the already issued tokens would require about 65 million cores of
-    Holo Hosting power online; not immediately practical.
+    issuing Holo fuel credit against wealth (eg. the net present value of a Holo hosting service),
+    and against deposits (eg. via Reserves).  Even if that target value is low (say, USD$0.01 or
+    USD$1.77 billion, and if the Holo system generated USD$5.00 per core per month in revenue, the
+    NPV of one year's worth of 1 core worth (USD$60) of hosting at a 10% discount rate is USD$54.55.
+    Estimating a credit factor of 50%, that results in USD$27.27 of credit extended per
+    core. Extending approximately the same amount of credit as the valuation of the already issued
+    tokens would require about 65 million cores of Holo Hosting power online; not immediately
+    practical.
 
     But, value-stability in Holo fuel at a significant per-unit valuation requires much more than
     that.  The ability to also quench inflation (increasing commodity prices, lowering per-unit
@@ -924,7 +926,7 @@ for curr in currencies:
 
     The only practical way to achieve that is to allow *other* forms of wealth to be attached and
     monetized into Holo fuel credit; for example, houses, vehicles, monetary savings and
-    non-monetary wealth owned unencumbered by liens or other restrictions.
+    non-monetary wealth owned unencumbered by liens or other restrictions.  
 
 *** Modelling Holo Fuel
 
@@ -970,7 +972,7 @@ for curr in currencies:
     only Hosts are authorized to sell (redeem) Holo fuel to the Reserve agent at LIFO rates.
 
     #+LATEX: {\scriptsize
-    #+BEGIN_SRC ipython :session :file images/client-requests.png :exports both :results raw drawer
+    #+BEGIN_SRC ipython :session :ipyfile images/client-requests.png :exports both :results raw drawer
 
 def std_dst_prob( SD ):
     """Given a number of SD away from the mean, compute the probability of that number being part of the
@@ -1311,7 +1313,7 @@ plt.show()
     total USD$ cost of Hosting accruing to the Client/hApps:
 
     #+LATEX: {\scriptsize
-    #+BEGIN_SRC ipython :session :file images/client-holdings.png :exports both :results raw drawer
+    #+BEGIN_SRC ipython :session :ipyfile images/client-holdings.png :exports both :results raw drawer
 
 fig,(ax0,ax1,ax2,ax3,ax4,ax5)= plt.subplots( 6, sharex=True, figsize=(6,6) )
 
